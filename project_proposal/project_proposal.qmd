@@ -44,13 +44,42 @@ The motivation for this study is rooted in the increasing relevance of data-driv
 
 ## Methods
 
-**Multiple Linear Regression (MLR)**: We will use MLR as our baseline model to establish initial relationships between the predictor variables and the target outcome.
+### Multiple Linear Regression (MLR)
+For our baseline MLR model, we will use the ordinary least squares (OLS) method to estimate the coefficients of our predictor variables. The model is specified as:
 
-**Generalized Linear Models (GLM)**: GLM will allow us to capture potential non-linear interactions and complex relationships in the data.
+$Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \ldots + \beta_nX_n + \epsilon$
 
-**XGBoost**: As an advanced ensemble method, XGBoost will be used to model complex patterns in the high-dimensional data, aiming for improved accuracy and robustness.
+where $Y$ represents the yards gained after the handoff, $X_i$ are the predictor variables, $\beta_i$ are the coefficients to be estimated, and $\epsilon$ is the error term. We will evaluate the assumptions of linear regression such as linearity, homoscedasticity, independence, and normality of residuals to ensure model validity.
 
-Data preprocessing will be a crucial initial step, involving handling of missing values, feature normalization, and variable engineering. Feature selection will be conducted to identify the most influential variables, and model performance will be evaluated.
+### Generalized Linear Models (GLM)
+GLMs will be fitted by selecting a suitable link function and a probability distribution for the response variable (yards gained). For example, if we choose a Poisson distribution, the link function could be the log function, leading to a Poisson regression model suitable for count data. The GLM is given by:
+
+$g(E(Y)) = \eta = X\beta$
+
+where $g(\cdot)$ is the link function, $E(Y)$ is the expected value of our target variable, $\eta$ is the linear predictor, $X$ is the matrix of predictors, and $\beta$ is the vector of coefficients.
+
+### XGBoost
+XGBoost will be utilized for its gradient boosting framework, which constructs new models that predict the residuals or errors of prior models and then combines them into the final prediction model. It employs an objective function as follows:
+
+$\text{Obj}(\theta) = L(\theta) + \Omega(\theta)$
+
+where $L$ is the training loss function that measures how predictive our model is with respect to the training data, and $\Omega$ is the regularization term that penalizes model complexity to avoid overfitting. XGBoost uses a quantile loss for regression tasks, which can be defined for the $\tau$-th quantile as:
+
+$$
+\rho_{\tau}(y, \hat{y}) = 
+\begin{cases} 
+\tau (y - \hat{y}) & \text{if } y \geq \hat{y} \\
+(1 - \tau) (\hat{y} - y) & \text{if } y < \hat{y}
+\end{cases}
+$$
+
+The models will be trained using cross-validation to tune hyperparameters and to prevent overfitting. Model performance will be assessed using metrics such as the Mean Squared Error (MSE) for MLR and GLM, and the pseudo $R^2$ for model goodness-of-fit. For XGBoost, we will also monitor the area under the Receiver Operating Characteristic curve (AUC) in classification scenarios or R-squared in regression contexts. Feature importance will be evaluated to identify which variables contribute most to the prediction of yards gained.
+
+### Data Preprocessing
+We will perform data preprocessing to clean and prepare the dataset for analysis. This includes imputation for missing values, feature scaling and normalization to ensure that all variables contribute equally to the model, and encoding of categorical variables as necessary. Feature engineering will be crucial to develop new variables that better capture the nuances of the game situations.
+
+All models will be implemented using appropriate statistical software or programming languages like R or Python, with packages or libraries such as `statsmodels` for MLR and GLM, and `xgboost` for the ensemble method. The final models will be validated using a holdout dataset or via k-fold cross-validation to ensure generalizability to unseen data.
+
 
 ## Data
 

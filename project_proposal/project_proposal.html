@@ -1174,10 +1174,32 @@ Giovanni Lunetta and Sam Lutzel
 </section>
 <section id="methods" class="slide level2">
 <h2>Methods</h2>
-<p><strong>Multiple Linear Regression (MLR)</strong>: We will use MLR as our baseline model to establish initial relationships between the predictor variables and the target outcome.</p>
-<p><strong>Generalized Linear Models (GLM)</strong>: GLM will allow us to capture potential non-linear interactions and complex relationships in the data.</p>
-<p><strong>XGBoost</strong>: As an advanced ensemble method, XGBoost will be used to model complex patterns in the high-dimensional data, aiming for improved accuracy and robustness.</p>
-<p>Data preprocessing will be a crucial initial step, involving handling of missing values, feature normalization, and variable engineering. Feature selection will be conducted to identify the most influential variables, and model performance will be evaluated.</p>
+</section>
+<section id="methods-1" class="slide level2">
+<h2>Methods</h2>
+<h3 id="multiple-linear-regression-mlr">Multiple Linear Regression (MLR)</h3>
+<p>For our baseline MLR model, we will use the ordinary least squares (OLS) method to estimate the coefficients of our predictor variables. The model is specified as:</p>
+<p><span class="math inline">\(Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \ldots + \beta_nX_n + \epsilon\)</span></p>
+<p>where <span class="math inline">\(Y\)</span> represents the yards gained after the handoff, <span class="math inline">\(X_i\)</span> are the predictor variables, <span class="math inline">\(\beta_i\)</span> are the coefficients to be estimated, and <span class="math inline">\(\epsilon\)</span> is the error term. We will evaluate the assumptions of linear regression such as linearity, homoscedasticity, independence, and normality of residuals to ensure model validity.</p>
+<h3 id="generalized-linear-models-glm">Generalized Linear Models (GLM)</h3>
+<p>GLMs will be fitted by selecting a suitable link function and a probability distribution for the response variable (yards gained). For example, if we choose a Poisson distribution, the link function could be the log function, leading to a Poisson regression model suitable for count data. The GLM is given by:</p>
+<p><span class="math inline">\(g(E(Y)) = \eta = X\beta\)</span></p>
+<p>where <span class="math inline">\(g(\cdot)\)</span> is the link function, <span class="math inline">\(E(Y)\)</span> is the expected value of our target variable, <span class="math inline">\(\eta\)</span> is the linear predictor, <span class="math inline">\(X\)</span> is the matrix of predictors, and <span class="math inline">\(\beta\)</span> is the vector of coefficients.</p>
+<h3 id="xgboost">XGBoost</h3>
+<p>XGBoost will be utilized for its gradient boosting framework, which constructs new models that predict the residuals or errors of prior models and then combines them into the final prediction model. It employs an objective function as follows:</p>
+<p><span class="math inline">\(\text{Obj}(\theta) = L(\theta) + \Omega(\theta)\)</span></p>
+<p>where <span class="math inline">\(L\)</span> is the training loss function that measures how predictive our model is with respect to the training data, and <span class="math inline">\(\Omega\)</span> is the regularization term that penalizes model complexity to avoid overfitting. XGBoost uses a quantile loss for regression tasks, which can be defined for the <span class="math inline">\(\tau\)</span>-th quantile as:</p>
+<p><span class="math display">\[
+\rho_{\tau}(y, \hat{y}) =
+\begin{cases}
+\tau (y - \hat{y}) &amp; \text{if } y \geq \hat{y} \\
+(1 - \tau) (\hat{y} - y) &amp; \text{if } y &lt; \hat{y}
+\end{cases}
+\]</span></p>
+<p>The models will be trained using cross-validation to tune hyperparameters and to prevent overfitting. Model performance will be assessed using metrics such as the Mean Squared Error (MSE) for MLR and GLM, and the pseudo <span class="math inline">\(R^2\)</span> for model goodness-of-fit. For XGBoost, we will also monitor the area under the Receiver Operating Characteristic curve (AUC) in classification scenarios or R-squared in regression contexts. Feature importance will be evaluated to identify which variables contribute most to the prediction of yards gained.</p>
+<h3 id="data-preprocessing">Data Preprocessing</h3>
+<p>We will perform data preprocessing to clean and prepare the dataset for analysis. This includes imputation for missing values, feature scaling and normalization to ensure that all variables contribute equally to the model, and encoding of categorical variables as necessary. Feature engineering will be crucial to develop new variables that better capture the nuances of the game situations.</p>
+<p>All models will be implemented using appropriate statistical software or programming languages like R or Python, with packages or libraries such as <code>statsmodels</code> for MLR and GLM, and <code>xgboost</code> for the ensemble method. The final models will be validated using a holdout dataset or via k-fold cross-validation to ensure generalizability to unseen data.</p>
 </section>
 <section id="data" class="slide level2">
 <h2>Data</h2>
