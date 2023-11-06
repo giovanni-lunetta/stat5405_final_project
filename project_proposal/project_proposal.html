@@ -1165,41 +1165,74 @@ Giovanni Lunetta and Sam Lutzel
 </section>
 <section id="abstract" class="slide level2">
 <h2>Abstract</h2>
-<p>This study utilizes advanced machine learning techniques, specifically Multiple Linear Regression (MLR), Generalized Linear Models (GLM), and XGBoost, to predict yards gained by NFL running backs after a handoff. Employing player tracking data from the 2017 to 2019 seasons, the models will consider player positions, velocities, accelerations, and game context. The goal is to provide actionable insights for team strategy and player utilization, contributing to the field of sports analytics.</p>
+<p>This study employs an ensemble of machine learning techniques, including Multiple Linear Regression (MLR), Generalized Linear Models (GLM), and XGBoost, to enhance predictive analytics in the National Football League (NFL). The research focuses on one of the most critical aspects of football offense - the running game. By predicting the yards gained by NFL running backs following a handoff, the study analyzes a plethora of player tracking data from the 2017 to 2019 seasons. It integrates a variety of factors such as player positions, velocities, accelerations, and the situational context of the game, including down, distance, and field position. This multifaceted approach aims to yield highly accurate models that can serve as valuable tools for coaching staffs to optimize play-calling, manage player workloads, and enhance game planning. The predictive insights derived from this research are intended to support teams in deploying their running backs more effectively, leading to potentially improved outcomes on the field. As the NFL continues to evolve with a greater emphasis on analytics, this study seeks to contribute significantly to the field of sports analytics by providing a model that underscores the importance of the running game in a predominantly pass-oriented league.</p>
 </section>
 <section id="goalmotivation" class="slide level2">
 <h2>Goal/Motivation</h2>
-<p>The goal is to develop predictive models that accurately estimate yards gained by a running back after a handoff, aiding team strategies and player evaluations in NFL games.</p>
-<p>The motivation for this study is rooted in the increasing relevance of data-driven decisions in sports. By translating player tracking data into actionable insights, this research aims to enhance team performance and contribute to sports analytics.</p>
+<p>The primary goal of this research is to develop cutting-edge predictive models capable of accurately estimating the yards a running back will gain after a handoff during NFL games. This objective is pivotal for formulating advanced offensive strategies and refining player evaluations. The running play is a fundamental aspect of the game that can dictate the tempo, control the clock, and establish physical dominance.</p>
+<p>The motivation behind this study stems from the transformative impact that data analytics has had on sports, particularly in the NFL, where the fusion of technology and sports science has begun to redefine how the game is played and understood. In an era where marginal gains are increasingly sought after, the ability to predict the outcome of running plays with high precision can provide teams with a significant competitive advantage. It enables coaches to make informed decisions regarding play selection, player rotations, and game management, especially in critical moments of a match. Additionally, the insights from this study can empower front offices in their scouting and drafting processes by quantifying the expected value a running back adds to their team. By pioneering research that translates complex player tracking data into practical strategies, this study not only propels the analytical capabilities of NFL teams but also enriches the broader discourse on sports performance analytics.</p>
 </section>
 <section id="methods" class="slide level2">
 <h2>Methods</h2>
-</section>
-<section id="methods-1" class="slide level2">
-<h2>Methods</h2>
+<h3 id="data-exploration">Data Exploration</h3>
+<p>Prior to developing our predictive models, we will conduct a comprehensive exploratory data analysis (EDA) to understand the underlying structure and characteristics of the data. This step will involve visualizing the distribution of key variables, identifying patterns and outliers, and exploring correlations and interactions between predictors. EDA will inform our feature selection and engineering strategies by highlighting potential predictors that are most informative of yards gained after a handoff.</p>
+<h3 id="data-cleaning-and-preprocessing">Data Cleaning and Preprocessing</h3>
+<p>Data cleaning and preprocessing are critical to ensuring the quality and integrity of our models. We will clean the dataset by addressing any inconsistencies, handling missing data through imputation techniques, and removing or correcting outliers. Preprocessing steps will include encoding categorical variables using one-hot encoding or label encoding methods, scaling and normalizing numerical variables to ensure they are on comparable scales, and potentially transforming variables to better meet the assumptions of our models.</p>
+<h3 id="feature-engineering">Feature Engineering</h3>
+<p>During preprocessing, we will also undertake feature engineering to create new variables that may have a stronger relationship with the target variable. This could include interaction terms that capture the combined effect of two predictors, polynomial features for capturing non-linear relationships, and domain-specific features that encapsulate strategic elements of the game.</p>
+<h3 id="model-development-and-evaluation">Model Development and Evaluation</h3>
+<p>With a clean and prepared dataset, we will then proceed to develop our MLR, GLM, and XGBoost models.</p>
 <h3 id="multiple-linear-regression-mlr">Multiple Linear Regression (MLR)</h3>
 <p>For our baseline MLR model, we will use the ordinary least squares (OLS) method to estimate the coefficients of our predictor variables. The model is specified as:</p>
 <p><span class="math inline">\(Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \ldots + \beta_nX_n + \epsilon\)</span></p>
-<p>where <span class="math inline">\(Y\)</span> represents the yards gained after the handoff, <span class="math inline">\(X_i\)</span> are the predictor variables, <span class="math inline">\(\beta_i\)</span> are the coefficients to be estimated, and <span class="math inline">\(\epsilon\)</span> is the error term. We will evaluate the assumptions of linear regression such as linearity, homoscedasticity, independence, and normality of residuals to ensure model validity.</p>
-<h3 id="generalized-linear-models-glm">Generalized Linear Models (GLM)</h3>
-<p>GLMs will be fitted by selecting a suitable link function and a probability distribution for the response variable (yards gained). For example, if we choose a Poisson distribution, the link function could be the log function, leading to a Poisson regression model suitable for count data. The GLM is given by:</p>
-<p><span class="math inline">\(g(E(Y)) = \eta = X\beta\)</span></p>
-<p>where <span class="math inline">\(g(\cdot)\)</span> is the link function, <span class="math inline">\(E(Y)\)</span> is the expected value of our target variable, <span class="math inline">\(\eta\)</span> is the linear predictor, <span class="math inline">\(X\)</span> is the matrix of predictors, and <span class="math inline">\(\beta\)</span> is the vector of coefficients.</p>
-<h3 id="xgboost">XGBoost</h3>
-<p>XGBoost will be utilized for its gradient boosting framework, which constructs new models that predict the residuals or errors of prior models and then combines them into the final prediction model. It employs an objective function as follows:</p>
-<p><span class="math inline">\(\text{Obj}(\theta) = L(\theta) + \Omega(\theta)\)</span></p>
-<p>where <span class="math inline">\(L\)</span> is the training loss function that measures how predictive our model is with respect to the training data, and <span class="math inline">\(\Omega\)</span> is the regularization term that penalizes model complexity to avoid overfitting. XGBoost uses a quantile loss for regression tasks, which can be defined for the <span class="math inline">\(\tau\)</span>-th quantile as:</p>
+<p>where <span class="math inline">\(Y\)</span> represents the yards gained after the handoff, <span class="math inline">\(X_i\)</span> are the predictor variables, <span class="math inline">\(\beta_i\)</span> are the coefficients to be estimated, and <span class="math inline">\(\epsilon\)</span> is the error term.</p>
+<p>The ordinary least squares (OLS) method will be deployed to minimize the sum of the squared differences between the observed and predicted values. The optimization problem can be represented as:</p>
 <p><span class="math display">\[
-\rho_{\tau}(y, \hat{y}) =
-\begin{cases}
-\tau (y - \hat{y}) &amp; \text{if } y \geq \hat{y} \\
-(1 - \tau) (\hat{y} - y) &amp; \text{if } y &lt; \hat{y}
-\end{cases}
+\min_{\beta} ||Y - X\beta||^2_2
 \]</span></p>
-<p>The models will be trained using cross-validation to tune hyperparameters and to prevent overfitting. Model performance will be assessed using metrics such as the Mean Squared Error (MSE) for MLR and GLM, and the pseudo <span class="math inline">\(R^2\)</span> for model goodness-of-fit. For XGBoost, we will also monitor the area under the Receiver Operating Characteristic curve (AUC) in classification scenarios or R-squared in regression contexts. Feature importance will be evaluated to identify which variables contribute most to the prediction of yards gained.</p>
-<h3 id="data-preprocessing">Data Preprocessing</h3>
-<p>We will perform data preprocessing to clean and prepare the dataset for analysis. This includes imputation for missing values, feature scaling and normalization to ensure that all variables contribute equally to the model, and encoding of categorical variables as necessary. Feature engineering will be crucial to develop new variables that better capture the nuances of the game situations.</p>
-<p>All models will be implemented using appropriate statistical software or programming languages like R or Python, with packages or libraries such as <code>statsmodels</code> for MLR and GLM, and <code>xgboost</code> for the ensemble method. The final models will be validated using a holdout dataset or via k-fold cross-validation to ensure generalizability to unseen data.</p>
+<p>Here, <span class="math inline">\(\min_{\beta} ||Y - X\beta||^2_2\)</span> represents the sum of the squared residuals, which we aim to minimize. This approach assumes that the relationship between the independent variables and the dependent variable is linear. To ensure the robustness of our model, we will conduct a series of diagnostic tests:</p>
+<ol type="1">
+<li>Linearity: We will use scatter plots and residual plots to verify that the relationship between the predictors and the response is linear.</li>
+<li>Homoscedasticity: We will inspect the residuals to confirm constant variance across all levels of the independent variables. This can be assessed visually using a residual vs. fitted values plot.</li>
+<li>Independence: The Durbin-Watson test will help in detecting the presence of autocorrelation in the residuals, which should not be present in the data.</li>
+<li>Normality of Residuals: Normality will be checked using Q-Q plots and statistical tests like the Shapiro-Wilk test.</li>
+</ol>
+<p>If any assumptions are violated, we may consider transformations of variables or the use of robust regression techniques.</p>
+<h3 id="generalized-linear-models-glm">Generalized Linear Models (GLM)</h3>
+<p>GLMs extend the linear model framework to allow for response variables that have error distribution models other than a normal distribution. They are particularly useful when dealing with non-normal response variables, such as count data or binary outcomes. In its general form, a GLM consists of three elements:</p>
+<ol type="1">
+<li>Random Component: Specifies the probability distribution of the response variable <span class="math inline">\(Y\)</span>, such as normal, binomial, Poisson, or exponential.</li>
+<li>Systematic Component: A linear predictor <span class="math inline">\(\eta = X\beta\)</span>.</li>
+<li>Link Function: A function <span class="math inline">\(g\)</span> that relates the mean of the response variable <span class="math inline">\(E(Y)\)</span> to the linear predictor <span class="math inline">\(\eta\)</span>.</li>
+</ol>
+<p>The choice of link function is crucial and is typically selected based on the nature of the distribution of the response variable. For instance, a logit link function is used for a binomial distribution, and a log link function is often used for a Poisson distribution.</p>
+<p>The likelihood function for a GLM can be written as:</p>
+<p><span class="math display">\[
+L(\beta) = \prod_{i=1}^{n} f(y_i; \theta_i, \phi)
+\]</span></p>
+<p>where <span class="math inline">\(f(y_i; \theta_i, \phi)\)</span> is the probability function for the <span class="math inline">\(i\)</span>-th observation, <span class="math inline">\(\theta_i\)</span> is the parameter of interest (e.g., mean), and <span class="math inline">\(\phi\)</span> is the dispersion parameter. The goal is to find the values of <span class="math inline">\(\beta\)</span> that maximize this likelihood function.</p>
+<h3 id="xgboost">XGBoost</h3>
+<p>XGBoost stands for eXtreme Gradient Boosting and is a decision-tree-based ensemble Machine Learning algorithm that uses a gradient boosting framework. It is a powerful technique that can handle a variety of regression and classification problems. For regression, it can be configured to optimize for different loss functions; the most common for regression being the squared error loss:</p>
+<p><span class="math display">\[
+L(\theta) = \sum_{i=1}^{n}(y_i - \hat{y}_i)^2
+\]</span></p>
+<p>where <span class="math inline">\(y_i\)</span> are the observed values, and <span class="math inline">\(\hat{y}_i\)</span></p>
+<p>In XGBoost, each new tree is built to correct the errors made by the previous ones. The algorithm combines weak predictive models to form a strong predictor. The model’s complexity is controlled by the regularization term <span class="math inline">\(\Omega(\theta)\)</span> which is a function of the tree structure and the number of leaves. The overall objective function to be minimized is:</p>
+<p><span class="math display">\[
+\text{Obj}(\theta) = L(\theta) + \lambda \sum_{k}(w_k^2) + \gamma T
+\]</span></p>
+<p>where <span class="math inline">\(w_k\)</span> represents the leaf weights of the trees, <span class="math inline">\(T\)</span> is the number of leaves, <span class="math inline">\(\lambda\)</span> is the L2 regularization term on the weights, and <span class="math inline">\(Y\)</span> is the complexity control on the number of leaves. For regression tasks, we can also utilize the quantile loss which is particularly useful for prediction intervals:</p>
+<p><span class="math display">\[
+L_{\tau}(\theta) = \sum_{i=1}^{n} \left[ \tau (y_i - \hat{y}_i) \mathbb{1}_{y_i \geq \hat{y}_i} + (1 - \tau) (\hat{y}_i - y_i) \mathbb{1}_{y_i &lt; \hat{y}_i} \right]
+\]</span></p>
+<p>Here, 1 is an indicator function, and <span class="math inline">\(\tau\)</span> is the quantile of interest, allowing us to model different parts of the conditional distribution of the response variable.</p>
+<p>XGBoost also provides a feature importance score, which is a metric that quantifies the contribution of each feature to the model’s predictive power. This is done by measuring the impact on the model’s accuracy each time a feature is used to split the data across all trees.</p>
+<h3 id="model-performance-metrics">Model Performance Metrics</h3>
+<p>For MLR and GLM, the model’s performance will be evaluated using metrics such as the Mean Squared Error (MSE) and the Mean Absolute Error (MAE). For the XGBoost model, along with MSE and MAE, we will assess performance using additional metrics like the R-squared for regression tasks and feature importance scores to understand which variables are most predictive.</p>
+<h3 id="model-interpretation-and-application">Model Interpretation and Application</h3>
+<p>The final step will be to interpret the models in the context of NFL games. This will involve translating the statistical outputs into actionable insights for coaches and team strategists, providing recommendations on how to leverage the results for competitive advantage in play-calling and player evaluation.</p>
+<h3 id="software-and-tools">Software and Tools</h3>
+<p>All analyses will be conducted in R, a statistical computing language that provides a wide array of packages for machine learning and data analysis. For MLR and GLM, we will utilize the <code>stats</code> package that comes with the R base installation. For our XGBoost model, we will use the <code>xgboost</code> package, which is specifically designed for speed and performance. Data manipulation and cleansing will be managed with packages like <code>dplyr</code> and <code>tidyr</code>, while <code>ggplot2</code> will be employed for data visualization to facilitate understanding and interpretation of the data and model outputs. For feature engineering and preprocessing, we will take advantage of <code>caret</code> or <code>recipes</code>. Hyperparameter tuning can be optimized using the <code>tune</code> package, and for cross-validation, the <code>rsample</code> package will be employed. The <code>broom</code> and <code>modelr</code> packages will be useful for tidying model outputs and working with models in a pipeline, respectively. This suite of packages will enable a comprehensive workflow within R for developing, evaluating, and interpreting the predictive models.</p>
 </section>
 <section id="data" class="slide level2">
 <h2>Data</h2>
