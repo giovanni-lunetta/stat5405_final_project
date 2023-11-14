@@ -30,7 +30,7 @@ execute:
 
 5. Data
 
-7. Proposal Write-Up
+7. Preliminary Data Exploration
 
 ## Abstract
 
@@ -247,6 +247,54 @@ Here are the columns:
 
 There are 682154 rows and 49 columns.
 
-## Proposal Write-Up
+## Preliminary Data Exploration
 
-A 1-2 page description of what you propose, how you propse to do this, what take-away you expect, and why will this be useful.
+Lets start by loading the data from the previous folder.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+
+train <- read_csv("cleaned_train.csv")
+```
+
+Lets start making some plots to see if we can find any interesting patterns in the data. We will start by looking at the distribution of the target variable, Yards.
+
+```{r}
+ggplot(train, aes(Yards)) + geom_histogram(binwidth = 1)
+```
+
+As we can see from the plot above, the distribution of yards gained after a handoff is skewed to the right. This is expected since the majority of running plays result in short gains, while a small percentage of plays result in large gains. 
+
+Lets do distribution of the number of players in the box.
+
+```{r}
+ggplot(train, aes(DefendersInTheBox)) + geom_histogram(binwidth = 1)
+```
+
+Based on the plot above, we can see that the number of defenders in the box is normally distributed, with a mean of 6.9 and a standard deviation of 1.6. This is expected since the defense typically lines up with 7 players in the box, but this can vary depending on the offensive formation and the down and distance.
+
+Lets do distribution of the down.
+
+```{r}
+ggplot(train, aes(Down)) + geom_histogram(binwidth = 1)
+```
+
+Based on the plot above, we can see that the majority of plays occur on first down, followed by second down, and then third down. This is expected since the offense has four downs to gain 10 yards, so the majority of plays occur on first and second down. In addition, in the case where it is fourth down, you expect there to be the least number of plays since the offense will typically punt the ball or attempt a field goal.
+
+Lets do distribution of the distance to the first down.
+
+```{r}
+ggplot(train, aes(Distance)) + geom_histogram(binwidth = 1)
+```
+
+This histogram is very interesting. To begin, we see the majority of run plays occur when the distance to the first down is 10 yards. This is because 10 yards is the most common distance to the first down (every drive starts with first and 10 and every play after obtaining a first down starts with first and 10). We also see a spike in the distribution at 1 yard. This is because the offense will typically run the ball on second/third and short (1-3 yards) to try and pick up the first down. 
+
+Lets do distribution of YardLine.
+
+```{r}
+ggplot(train, aes(YardLine)) + geom_histogram(binwidth = 1)
+```
+
+Again, like the prior histogram, we have some interesting characteristics and spikes. First, we see a spike at the 25 yard line. This is because the 25 yard line is the touchback line, so if the offense does not run out of the endzone on a  kickoff, the ball is automatically placed at the 25 yard line. We also see a spike at the 1 yard line. This is because the offense will typically run the ball that close to the goal line to try and score a touchdown. 
