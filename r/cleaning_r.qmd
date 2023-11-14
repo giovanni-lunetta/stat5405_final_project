@@ -1,7 +1,7 @@
 
 Our first step in this project is to clean the data in order to make it usable for our analysis. Lets load in the data and take a look at the structure.
 ```{r}
-df <- read.csv('/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/r/cleaned_train_r.csv', stringsAsFactors = FALSE)
+df <- read.csv('/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/nfl-big-data-bowl-2020/train.csv', stringsAsFactors = FALSE)
 str(df)
 ```
 
@@ -418,7 +418,7 @@ if (all(one %in% names(df))) {
   df_one <- df %>%
     group_by(PlayId) %>%
     summarise(across(all_of(one), ~ first(na.omit(.x))))
-  print(df_summary)
+  print(df_one)
 } else {
   stop("One or more columns in 'one' do not exist in the dataframe.")
 }
