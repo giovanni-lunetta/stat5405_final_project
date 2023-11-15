@@ -54,6 +54,8 @@ Prior to developing our predictive models, we will conduct a comprehensive explo
 
 Data cleaning and preprocessing are critical to ensuring the quality and integrity of our models. We will clean the dataset by addressing any inconsistencies, handling missing data through imputation techniques, and removing or correcting outliers. Preprocessing steps will include encoding categorical variables using one-hot encoding or label encoding methods, scaling and normalizing numerical variables to ensure they are on comparable scales, and potentially transforming variables to better meet the assumptions of our models. In addition, it may be necessary to remove certain variables that may not be relevant to the target variable or may introduce multicollinearity issues.
 
+One additional step that was taken was the randomization of all plays within the dataset. The reason for this randomization is to ensure that each row (play of a game) is independent of one another. Furthermore, the dataset only contains running plays. Therefore, passing plays that occured between the running plays were removed. In other words, all plays are not dependent on the previous outcome. In all, the randomization of the dataset in conjunction with the removal of passing plays ensures that each row is independent of one another.
+
 ### Feature Engineering
 During preprocessing, we will also undertake feature engineering to create new variables that may have a stronger relationship with the target variable. This could include interaction terms that capture the combined effect of two predictors, polynomial features for capturing non-linear relationships, and domain-specific features that encapsulate strategic elements of the game.
 
