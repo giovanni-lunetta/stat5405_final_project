@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.313">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>cleaning_r</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="cleaning_r_files/libs/clipboard/clipboard.min.js"></script>
+<script src="cleaning_r_files/libs/quarto-html/quarto.js"></script>
+<script src="cleaning_r_files/libs/quarto-html/popper.min.js"></script>
+<script src="cleaning_r_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="cleaning_r_files/libs/quarto-html/anchor.min.js"></script>
+<link href="cleaning_r_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="cleaning_r_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="cleaning_r_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="cleaning_r_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="cleaning_r_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+<p>Our first step in this project is to clean the data in order to make it usable for our analysis. Lets load in the data and take a look at the structure.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">'/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/nfl-big-data-bowl-2020/train.csv'</span>, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   682154 obs. of  49 variables:
+ $ GameId                : int  2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 ...
+ $ PlayId                : num  2.02e+13 2.02e+13 2.02e+13 2.02e+13 2.02e+13 ...
+ $ Team                  : chr  "away" "away" "away" "away" ...
+ $ X                     : num  73.9 74.7 74 71.5 69.3 ...
+ $ Y                     : num  34.8 32.6 33.2 27.7 35.4 ...
+ $ S                     : num  1.69 0.42 1.22 0.42 1.82 1.01 1.11 1.24 0.26 4.55 ...
+ $ A                     : num  1.13 1.35 0.59 0.54 2.43 0.32 0.83 0.74 1.86 0.76 ...
+ $ Dis                   : num  0.4 0.01 0.31 0.02 0.16 0.18 0.02 0.13 0.28 0.51 ...
+ $ Orientation           : num  81.99 27.61 3.01 359.77 12.63 ...
+ $ Dir                   : num  177 199 203 106 164 ...
+ $ NflId                 : int  496723 2495116 2495493 2506353 2530794 2543494 2543637 2543851 2550257 2552488 ...
+ $ DisplayName           : chr  "Eric Berry" "Allen Bailey" "Justin Houston" "Derrick Johnson" ...
+ $ JerseyNumber          : int  29 97 50 56 38 55 39 23 49 22 ...
+ $ Season                : int  2017 2017 2017 2017 2017 2017 2017 2017 2017 2017 ...
+ $ YardLine              : int  35 35 35 35 35 35 35 35 35 35 ...
+ $ Quarter               : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ GameClock             : chr  "14:14:00" "14:14:00" "14:14:00" "14:14:00" ...
+ $ PossessionTeam        : chr  "NE" "NE" "NE" "NE" ...
+ $ Down                  : int  3 3 3 3 3 3 3 3 3 3 ...
+ $ Distance              : int  2 2 2 2 2 2 2 2 2 2 ...
+ $ FieldPosition         : chr  "NE" "NE" "NE" "NE" ...
+ $ HomeScoreBeforePlay   : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ VisitorScoreBeforePlay: int  0 0 0 0 0 0 0 0 0 0 ...
+ $ NflIdRusher           : int  2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 ...
+ $ OffenseFormation      : chr  "SHOTGUN" "SHOTGUN" "SHOTGUN" "SHOTGUN" ...
+ $ OffensePersonnel      : chr  "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" ...
+ $ DefendersInTheBox     : int  6 6 6 6 6 6 6 6 6 6 ...
+ $ DefensePersonnel      : chr  "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" ...
+ $ PlayDirection         : chr  "left" "left" "left" "left" ...
+ $ TimeHandoff           : chr  "2017-09-08T00:44:06.000Z" "2017-09-08T00:44:06.000Z" "2017-09-08T00:44:06.000Z" "2017-09-08T00:44:06.000Z" ...
+ $ TimeSnap              : chr  "2017-09-08T00:44:05.000Z" "2017-09-08T00:44:05.000Z" "2017-09-08T00:44:05.000Z" "2017-09-08T00:44:05.000Z" ...
+ $ Yards                 : int  8 8 8 8 8 8 8 8 8 8 ...
+ $ PlayerHeight          : chr  "6-0" "6-3" "6-3" "6-3" ...
+ $ PlayerWeight          : int  212 288 270 245 206 252 190 193 208 197 ...
+ $ PlayerBirthDate       : chr  "12/29/1988" "03/25/1989" "01/21/1989" "11/22/1982" ...
+ $ PlayerCollegeName     : chr  "Tennessee" "Miami" "Georgia" "Texas" ...
+ $ Position              : chr  "SS" "DE" "DE" "ILB" ...
+ $ HomeTeamAbbr          : chr  "NE" "NE" "NE" "NE" ...
+ $ VisitorTeamAbbr       : chr  "KC" "KC" "KC" "KC" ...
+ $ Week                  : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ Stadium               : chr  "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" ...
+ $ Location              : chr  "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" ...
+ $ StadiumType           : chr  "Outdoor" "Outdoor" "Outdoor" "Outdoor" ...
+ $ Turf                  : chr  "Field Turf" "Field Turf" "Field Turf" "Field Turf" ...
+ $ GameWeather           : chr  "Clear and warm" "Clear and warm" "Clear and warm" "Clear and warm" ...
+ $ Temperature           : int  63 63 63 63 63 63 63 63 63 63 ...
+ $ Humidity              : int  77 77 77 77 77 77 77 77 77 77 ...
+ $ WindSpeed             : chr  "8" "8" "8" "8" ...
+ $ WindDirection         : chr  "SW" "SW" "SW" "SW" ...</code></pre>
+</div>
+</div>
+<p>Based on the data dictionary provided to us by the NFL, we already have a basic understanding of the data, but lets look at a few more important pieces of information, such as the total number of games:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(<span class="fu">unique</span>(df<span class="sc">$</span>GameId))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 688</code></pre>
+</div>
+</div>
+<p>We can see that there are a total of 688 games.</p>
+<p>Our next step is to start cleaning columns with missing values:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace empty strings and "N/A" strings with NA for the entire dataframe</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">lapply</span>(df, <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">==</span> <span class="st">""</span> <span class="sc">|</span> x <span class="sc">==</span> <span class="st">"N/A"</span>, <span class="cn">NA</span>, x))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the list back to a dataframe</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(df)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure that strings are not converted to factors</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">lapply</span>(df, <span class="cf">function</span>(x) <span class="cf">if</span> (<span class="fu">is.factor</span>(x)) <span class="fu">as.character</span>(x) <span class="cf">else</span> x), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Now you can count the missing values again</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>missing_values_count <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df, <span class="cf">function</span>(x) <span class="fu">sum</span>(<span class="fu">is.na</span>(x)))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the count of missing values for each column</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(missing_values_count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                GameId                 PlayId                   Team 
+                     0                      0                      0 
+                     X                      Y                      S 
+                     0                      0                      0 
+                     A                    Dis            Orientation 
+                     0                      0                     23 
+                   Dir                  NflId            DisplayName 
+                    28                      0                      0 
+          JerseyNumber                 Season               YardLine 
+                     0                      0                      0 
+               Quarter              GameClock         PossessionTeam 
+                     0                      0                      0 
+                  Down               Distance          FieldPosition 
+                     0                      0                   8602 
+   HomeScoreBeforePlay VisitorScoreBeforePlay            NflIdRusher 
+                     0                      0                      0 
+      OffenseFormation       OffensePersonnel      DefendersInTheBox 
+                    88                      0                     22 
+      DefensePersonnel          PlayDirection            TimeHandoff 
+                     0                      0                      0 
+              TimeSnap                  Yards           PlayerHeight 
+                     0                      0                      0 
+          PlayerWeight        PlayerBirthDate      PlayerCollegeName 
+                     0                      0                      0 
+              Position           HomeTeamAbbr        VisitorTeamAbbr 
+                     0                      0                      0 
+                  Week                Stadium               Location 
+                     0                      0                      0 
+           StadiumType                   Turf            GameWeather 
+                 41690                      0                  60170 
+           Temperature               Humidity              WindSpeed 
+                 63646                   6160                  91872 
+         WindDirection 
+                104676 </code></pre>
+</div>
+</div>
+<p>As we can see, most of the columns do not have missing values, but the ones that do, have a lot. Lets start with WindSpeed:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>value_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(df<span class="sc">$</span>WindSpeed)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the value counts</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(value_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+                  0                   1                  10 10 mph, gusts to 15 
+              15664               15708               43054                1100 
+              10-20               10mph               10MPH                  11 
+               1100                1804                 902               23870 
+              11-17                  12              12 mph               12-22 
+                726               30624                 924                1056 
+              12mph                  13              13 MPH                  14 
+                968               17622                1804                7854 
+   14 Gusting to 24               14-23                  15   15 gusts up to 25 
+               1122                 968               18062                 836 
+                 16                  17                  18                  19 
+              10978                6886                3102                1826 
+                  2   2 mph, gusts to 5                  20                  22 
+              32780                1122                2090                 836 
+                 23                  24                   3                   4 
+               2156                 968               39952               41690 
+              4 MPh                   5                   6               6 mph 
+                902               66264               49104                1034 
+ 6 mph, Gusts to 10                6mph                   7               7 MPH 
+               1078                1804               52294                1100 
+                  8                   9  9 mph, gusts to 13                9mph 
+              38940               39776                1122                 792 
+               Calm                   E                  SE                 SSE 
+               1100                1144                1122                 836 
+                SSW 
+               1716 </code></pre>
+</div>
+</div>
+<p>We can standardize this column and replace the missing values with the mean of the column:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>clean_windspeed <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">as.character</span>(x)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if x is a digit</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"^</span><span class="sc">\\</span><span class="st">d+$"</span>, x)) {</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">as.numeric</span>(x))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if x is purely alphabetic</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"^[A-Za-z]+$"</span>, x)) {</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="dv">0</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if x is alphanumeric</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"^[A-Za-z0-9]+$"</span>, x)) {</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">as.numeric</span>(<span class="fu">unlist</span>(<span class="fu">strsplit</span>(<span class="fu">toupper</span>(x), <span class="st">"M"</span>))[<span class="dv">1</span>]))</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Check if x contains a dash (range)</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">"-"</span>, x)) {</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    range <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">unlist</span>(<span class="fu">strsplit</span>(x, <span class="st">"-"</span>)))</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">mean</span>(range))</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Default case</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="dv">0</span>)</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the custom function to clean 'WindSpeed' values</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>WindSpeed <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df<span class="sc">$</span>WindSpeed, clean_windspeed)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace NA values with the mean of the 'WindSpeed' column</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>WindSpeed <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(df<span class="sc">$</span>WindSpeed), <span class="fu">mean</span>(df<span class="sc">$</span>WindSpeed, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), df<span class="sc">$</span>WindSpeed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Lets plot the cleaned columns:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the distribution of 'WindSpeed' values</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> WindSpeed)) <span class="sc">+</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Wind Speed (MPH)"</span>, <span class="at">y =</span> <span class="st">"Count"</span>, <span class="at">title =</span> <span class="st">"Distribution of Wind Speed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="cleaning_r_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Next we clean WindDirection in a similar way:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>value_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(df<span class="sc">$</span>WindDirection)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the value counts</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(value_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+               1               13                8             Calm 
+            1122              836             2860             1056 
+               E             East             EAST  East North East 
+           20438            12078              902              748 
+  East Southeast              ENE              ESE         From ESE 
+            1078            14542            11858              682 
+         From NE         From NNE         From NNW           From S 
+             924              968              924             4840 
+        From SSE         From SSW          From SW           from W 
+             880              968             5764              726 
+          From W         From WSW                N             N-NE 
+            1980              946            30800             1012 
+              NE              NNE              NNW            North 
+           39314            27434            21208            20086 
+      North East  North/Northwest        Northeast        NorthEast 
+            3014              968             3652             3212 
+       Northwest               NW                s                S 
+            4070            34408             2728            27478 
+            S-SW               SE            South  South Southeast 
+            1276            31746            24574              946 
+ South Southwest       South west South, Southeast        Southeast 
+             858              836             1254             1936 
+       Southerly        Southwest        SouthWest              SSE 
+            1166             3894             2134            15400 
+             SSW               SW                W             W-NW 
+           27764            39886            30338             1804 
+            W-SW             West   West Northwest   West-Southwest 
+             968            17468             1056             1386 
+             WNW              WSW 
+           29348            34936 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>clean_wind_direction <span class="ot">&lt;-</span> <span class="cf">function</span>(wd) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Handle NA values</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(wd)) {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'none'</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  wd <span class="ot">&lt;-</span> <span class="fu">toupper</span>(<span class="fu">as.character</span>(wd))</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (wd <span class="sc">==</span> <span class="st">'N'</span> <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM N'</span>, wd)) {</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'north'</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (wd <span class="sc">==</span> <span class="st">'S'</span> <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM S'</span>, wd)) {</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'south'</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (wd <span class="sc">==</span> <span class="st">'W'</span> <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM W'</span>, wd)) {</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'west'</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (wd <span class="sc">==</span> <span class="st">'E'</span> <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM E'</span>, wd)) {</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'east'</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'FROM SW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM SSW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM WSW'</span>, wd)) {</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'south west'</span>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'FROM SE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM SSE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM ESE'</span>, wd)) {</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'south east'</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'FROM NW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM NNW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM WNW'</span>, wd)) {</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'north west'</span>)</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'FROM NE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM NNE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'FROM ENE'</span>, wd)) {</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'north east'</span>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'NW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'NORTHWEST'</span>, wd)) {</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'north west'</span>)</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'NE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'NORTH EAST'</span>, wd)) {</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'north east'</span>)</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'SW'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'SOUTHWEST'</span>, wd)) {</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'south west'</span>)</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">grepl</span>(<span class="st">'SE'</span>, wd) <span class="sc">||</span> <span class="fu">grepl</span>(<span class="st">'SOUTHEAST'</span>, wd)) {</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'south east'</span>)</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="st">'none'</span>)</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the function to the 'WindDirection' column</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>WindDirection <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df<span class="sc">$</span>WindDirection, clean_wind_direction)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Because the data is currently time-series data, we can forward fill the humidity and temperature column:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zoo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'zoo'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fill NA values using forward-fill for 'Humidity'</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>Humidity <span class="ot">&lt;-</span> <span class="fu">na.locf</span>(df<span class="sc">$</span>Humidity, <span class="at">na.rm =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Fill NA values using forward-fill for 'Temperature'</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>Temperature <span class="ot">&lt;-</span> <span class="fu">na.locf</span>(df<span class="sc">$</span>Temperature, <span class="at">na.rm =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can also impute the missing values for Orientation, Dir, DefendersInTheBox, and OffenseFormation. Because there are not a lot of missing values, we can use the mean of the column to fill in the missing values. We can also fill in the missing values for FieldPosition:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculating the means</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>orientation_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(df<span class="sc">$</span>Orientation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>dir_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(df<span class="sc">$</span>Dir, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>defenders_mean <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">mean</span>(df<span class="sc">$</span>DefendersInTheBox, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Using mutate to fill NA values</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Orientation =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Orientation), orientation_mean, Orientation),</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Dir =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(Dir), dir_mean, Dir),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">DefendersInTheBox =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(DefendersInTheBox), defenders_mean, DefendersInTheBox),</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">OffenseFormation =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(OffenseFormation), <span class="st">'UNKNOWN'</span>, OffenseFormation)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>FieldPosition <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>YardLine <span class="sc">==</span> <span class="dv">50</span>, df<span class="sc">$</span>PossessionTeam, df<span class="sc">$</span>FieldPosition)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, the GameWeather column is a bit messy, and has multiple different values, even though there are only 4 weather types that really matter rain, overcast, clear, snow, and if players are climate controlled (indoors etc). Lets clean this column:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>value_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(df<span class="sc">$</span>GameWeather)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the value counts</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(value_counts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+                                                              30% Chance of Rain 
+                                                                            1144 
+                                                                          Breezy 
+                                                                            1034 
+                                                                           Clear 
+                                                                           55726 
+                                                                  Clear and cold 
+                                                                            1276 
+                                                                  Clear and Cool 
+                                                                            1034 
+                                                                 Clear and sunny 
+                                                                            1078 
+                                                                 Clear and Sunny 
+                                                                             990 
+                                                                  Clear and warm 
+                                                                            1144 
+                                                                     Clear skies 
+                                                                            3366 
+                                                                     Clear Skies 
+                                                                            1980 
+                                                                          cloudy 
+                                                                            1870 
+                                                                          Cloudy 
+                                                                          147114 
+                                                                 Cloudy and cold 
+                                                                            1100 
+                                                                 Cloudy and Cool 
+                                                                            1232 
+Cloudy with periods of rain, thunder possible. Winds shifting to WNW, 10-20 mph. 
+                                                                             946 
+                                                    Cloudy with showers and wind 
+                                                                             990 
+                                                      Cloudy, 50% change of rain 
+                                                                            1034 
+                                                          Cloudy, chance of rain 
+                                                                             902 
+                                   Cloudy, fog started developing in 2nd quarter 
+                                                                            1100 
+                                            Cloudy, light snow accumulating 1-3" 
+                                                                             836 
+                                                                    Cloudy, Rain 
+                                                                            1100 
+                                                                            Cold 
+                                                                            2178 
+                                                              Controlled Climate 
+                                                                           15708 
+                                                                           Coudy 
+                                                                             990 
+                                                                            Fair 
+                                                                            9966 
+                                                                            Hazy 
+                                                                            3124 
+                                                          Heavy lake effect snow 
+                                                                            1870 
+                                                                          Indoor 
+                                                                            6182 
+                                                                         Indoors 
+                                                                            5676 
+                                                                      Light rain 
+                                                                             792 
+                                                                      Light Rain 
+                                                                            3762 
+                                                                    Mostly clear 
+                                                                            1166 
+                                                                    Mostly Clear 
+                                                                            2024 
+                                                                   Mostly cloudy 
+                                                                            6864 
+                                                                   Mostly Cloudy 
+                                                                           27962 
+                                                                    Mostly Coudy 
+                                                                            1144 
+                                                                    Mostly sunny 
+                                                                            6930 
+                                                                    Mostly Sunny 
+                                                                           10736 
+                                                              Mostly Sunny Skies 
+                                                                            1100 
+                                                                   N/A (Indoors) 
+                                                                           16302 
+                                                                      N/A Indoor 
+                                                                            4224 
+                                                                     N/A Indoors 
+                                                                             968 
+                                                                        overcast 
+                                                                             924 
+                                                                        Overcast 
+                                                                            2156 
+                                                                    Partly clear 
+                                                                             770 
+                                                                   partly cloudy 
+                                                                            1122 
+                                                                   Partly cloudy 
+                                                                            1980 
+                                                                   Partly Cloudy 
+                                                                           55880 
+                                                          Partly cloudy and mild 
+                                                                             902 
+                                                                  Partly Clouidy 
+                                                                            1100 
+                                                                    Partly sunny 
+                                                                            3058 
+                                                                    Partly Sunny 
+                                                                            7590 
+                                                                    Party Cloudy 
+                                                                             814 
+                                                                            Rain 
+                                                                           26180 
+                                                                   Rain and Wind 
+                                                                            1100 
+                                                                 Rain Chance 40% 
+                                                                             836 
+                                                  Rain likely, temps in low 40s. 
+                                                                            1078 
+                                                                     Rain shower 
+                                                                            1188 
+                                                                         Raining 
+                                                                             990 
+                                                                           Rainy 
+                                                                             704 
+                                                               Scattered Showers 
+                                                                            1100 
+                                                                         Showers 
+                                                                             880 
+                                                                            Snow 
+                                                                            2002 
+                                                                    Sun &amp; clouds 
+                                                                             968 
+                                                                           sUNNY 
+                                                                            1012 
+                                                                           Sunny 
+                                                                          143088 
+                                                                 Sunny and clear 
+                                                                             946 
+                                                                  Sunny and cold 
+                                                                             990 
+                                                                  Sunny and warm 
+                                                                            2134 
+                                                                     Sunny Skies 
+                                                                            1012 
+                                                       Sunny, highs to upper 80s 
+                                                                            1100 
+                                                                    Sunny, Windy 
+                                                                             792 
+                                                      T: 51; H: 55; W: NW 10 mph 
+                                                                             924 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>group_game_weather <span class="ot">&lt;-</span> <span class="cf">function</span>(weather) {</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  rain <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Rainy'</span>, <span class="st">'Rain Chance 40%'</span>, <span class="st">'Showers'</span>,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>            <span class="st">'Cloudy with periods of rain, thunder possible. Winds shifting to WNW, 10-20 mph.'</span>,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>            <span class="st">'Scattered Showers'</span>, <span class="st">'Cloudy, Rain'</span>, <span class="st">'Rain shower'</span>, <span class="st">'Light Rain'</span>, <span class="st">'Rain'</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  overcast <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Cloudy, light snow accumulating 1-3"'</span>, <span class="st">'Party Cloudy'</span>, <span class="st">'Cloudy, chance of rain'</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Coudy'</span>, <span class="st">'Cloudy, 50% change of rain'</span>, <span class="st">'Rain likely, temps in low 40s.'</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Cloudy and cold'</span>, <span class="st">'Cloudy, fog started developing in 2nd quarter'</span>,</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Partly Clouidy'</span>, <span class="st">'30% Chance of Rain'</span>, <span class="st">'Mostly Coudy'</span>, <span class="st">'Cloudy and Cool'</span>,</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">'cloudy'</span>, <span class="st">'Partly cloudy'</span>, <span class="st">'Overcast'</span>, <span class="st">'Hazy'</span>, <span class="st">'Mostly cloudy'</span>, <span class="st">'Mostly Cloudy'</span>,</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Partly Cloudy'</span>, <span class="st">'Cloudy'</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  clear <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Partly clear'</span>, <span class="st">'Sunny and clear'</span>, <span class="st">'Sun &amp; clouds'</span>, <span class="st">'Clear and Sunny'</span>,</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>             <span class="st">'Sunny and cold'</span>, <span class="st">'Sunny Skies'</span>, <span class="st">'Clear and Cool'</span>, <span class="st">'Clear and sunny'</span>,</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>             <span class="st">'Sunny, highs to upper 80s'</span>, <span class="st">'Mostly Sunny Skies'</span>, <span class="st">'Cold'</span>,</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>             <span class="st">'Clear and warm'</span>, <span class="st">'Sunny and warm'</span>, <span class="st">'Clear and cold'</span>, <span class="st">'Mostly sunny'</span>,</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>             <span class="st">'T: 51; H: 55; W: NW 10 mph'</span>, <span class="st">'Clear Skies'</span>, <span class="st">'Clear skies'</span>, <span class="st">'Partly sunny'</span>,</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>             <span class="st">'Fair'</span>, <span class="st">'Partly Sunny'</span>, <span class="st">'Mostly Sunny'</span>, <span class="st">'Clear'</span>, <span class="st">'Sunny'</span>)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  snow <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Heavy lake effect snow'</span>, <span class="st">'Snow'</span>)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  none <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'N/A Indoor'</span>, <span class="st">'Indoors'</span>, <span class="st">'Indoor'</span>, <span class="st">'N/A (Indoors)'</span>, <span class="st">'Controlled Climate'</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (weather <span class="sc">%in%</span> rain) {</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'rain'</span>)</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (weather <span class="sc">%in%</span> overcast) {</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'overcast'</span>)</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (weather <span class="sc">%in%</span> clear) {</span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'clear'</span>)</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (weather <span class="sc">%in%</span> snow) {</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'snow'</span>)</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (weather <span class="sc">%in%</span> none) {</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'none'</span>)</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'none'</span>)</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>GameWeather <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df<span class="sc">$</span>GameWeather, group_game_weather)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can do a similar cleaning process with the stadium type column:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>group_stadium_types <span class="ot">&lt;-</span> <span class="cf">function</span>(stadium) {</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  outdoor <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Outdoor'</span>, <span class="st">'Outdoors'</span>, <span class="st">'Cloudy'</span>, <span class="st">'Heinz Field'</span>, </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>               <span class="st">'Outdor'</span>, <span class="st">'Ourdoor'</span>, <span class="st">'Outside'</span>, <span class="st">'Outddors'</span>, </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>               <span class="st">'Outdoor Retr Roof-Open'</span>, <span class="st">'Oudoor'</span>, <span class="st">'Bowl'</span>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  indoor_closed <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Indoors'</span>, <span class="st">'Indoor'</span>, <span class="st">'Indoor, Roof Closed'</span>, <span class="st">'Indoor, Roof Closed'</span>, </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'Retractable Roof'</span>, <span class="st">'Retr. Roof-Closed'</span>, <span class="st">'Retr. Roof - Closed'</span>, <span class="st">'Retr. Roof Closed'</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  indoor_open <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Indoor, Open Roof'</span>, <span class="st">'Open'</span>, <span class="st">'Retr. Roof-Open'</span>, <span class="st">'Retr. Roof - Open'</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  dome_closed <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Dome'</span>, <span class="st">'Domed, closed'</span>, <span class="st">'Closed Dome'</span>, <span class="st">'Domed'</span>, <span class="st">'Dome, closed'</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  dome_open <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Domed, Open'</span>, <span class="st">'Domed, open'</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (stadium <span class="sc">%in%</span> outdoor) {</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'outdoor'</span>)</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (stadium <span class="sc">%in%</span> indoor_closed) {</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'indoor closed'</span>)</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (stadium <span class="sc">%in%</span> indoor_open) {</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'indoor open'</span>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (stadium <span class="sc">%in%</span> dome_closed) {</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'dome closed'</span>)</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (stadium <span class="sc">%in%</span> dome_open) {</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'dome open'</span>)</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="st">'unknown'</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>StadiumType <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df<span class="sc">$</span>StadiumType, group_stadium_types)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, we can deal with time data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>TimeHandoff <span class="ot">&lt;-</span> <span class="fu">ymd_hms</span>(df<span class="sc">$</span>TimeHandoff)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>TimeSnap <span class="ot">&lt;-</span> <span class="fu">ymd_hms</span>(df<span class="sc">$</span>TimeSnap)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>TimeDelta <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(df<span class="sc">$</span>TimeHandoff, df<span class="sc">$</span>TimeSnap, <span class="at">units =</span> <span class="st">"secs"</span>))</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Optionally, you can remove 'TimeSnap' and 'TimeHandoff' columns</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df[, <span class="sc">!</span><span class="fu">names</span>(df) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'TimeSnap'</span>, <span class="st">'TimeHandoff'</span>)]</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>BirthYear <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">sub</span>(<span class="st">".*?/(.*?)/.*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, df<span class="sc">$</span>PlayerBirthDate))</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>GameHour <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">sub</span>(<span class="st">"(.*?):.*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, df<span class="sc">$</span>GameClock))</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Optionally, drop 'PlayerBirthDate' and 'GameClock' columns</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df[, <span class="sc">!</span><span class="fu">names</span>(df) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'PlayerBirthDate'</span>, <span class="st">'GameClock'</span>)]</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>PlayerHeight <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">strsplit</span>(df<span class="sc">$</span>PlayerHeight, <span class="st">'-'</span>), <span class="cf">function</span>(x) <span class="fu">mean</span>(<span class="fu">as.numeric</span>(x)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can also break up the DefensePersonnel column into individual columns with the counts of that positional player:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>process_defense <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  num <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">strsplit</span>(x, <span class="st">","</span>))</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  dl <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">strsplit</span>(num[<span class="dv">1</span>], <span class="st">" "</span>)[[<span class="dv">1</span>]][<span class="dv">1</span>])</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  lb <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">strsplit</span>(num[<span class="dv">2</span>], <span class="st">" "</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  db <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">strsplit</span>(num[<span class="dv">3</span>], <span class="st">" "</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(num) <span class="sc">&gt;</span> <span class="dv">3</span>) {</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    ol <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(<span class="fu">strsplit</span>(num[<span class="dv">4</span>], <span class="st">" "</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    ol <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">c</span>(dl, lb, db, ol))</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>values <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df<span class="sc">$</span>DefensePersonnel, process_defense)</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Extracting the individual lists into separate vectors</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DL =</span> values[<span class="dv">1</span>, ],</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">LB =</span> values[<span class="dv">2</span>, ],</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">BL =</span> values[<span class="dv">3</span>, ],</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">OL =</span> values[<span class="dv">4</span>, ])</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Optionally, drop 'DefensePersonnel' column</span></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>DefensePersonnel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   682154 obs. of  51 variables:
+ $ GameId                : int  2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 2017090700 ...
+ $ PlayId                : num  2.02e+13 2.02e+13 2.02e+13 2.02e+13 2.02e+13 ...
+ $ Team                  : chr  "away" "away" "away" "away" ...
+ $ X                     : num  73.9 74.7 74 71.5 69.3 ...
+ $ Y                     : num  34.8 32.6 33.2 27.7 35.4 ...
+ $ S                     : num  1.69 0.42 1.22 0.42 1.82 1.01 1.11 1.24 0.26 4.55 ...
+ $ A                     : num  1.13 1.35 0.59 0.54 2.43 0.32 0.83 0.74 1.86 0.76 ...
+ $ Dis                   : num  0.4 0.01 0.31 0.02 0.16 0.18 0.02 0.13 0.28 0.51 ...
+ $ Orientation           : num  81.99 27.61 3.01 359.77 12.63 ...
+ $ Dir                   : num  177 199 203 106 164 ...
+ $ NflId                 : int  496723 2495116 2495493 2506353 2530794 2543494 2543637 2543851 2550257 2552488 ...
+ $ DisplayName           : chr  "Eric Berry" "Allen Bailey" "Justin Houston" "Derrick Johnson" ...
+ $ JerseyNumber          : int  29 97 50 56 38 55 39 23 49 22 ...
+ $ Season                : int  2017 2017 2017 2017 2017 2017 2017 2017 2017 2017 ...
+ $ YardLine              : int  35 35 35 35 35 35 35 35 35 35 ...
+ $ Quarter               : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ PossessionTeam        : chr  "NE" "NE" "NE" "NE" ...
+ $ Down                  : int  3 3 3 3 3 3 3 3 3 3 ...
+ $ Distance              : int  2 2 2 2 2 2 2 2 2 2 ...
+ $ FieldPosition         : chr  "NE" "NE" "NE" "NE" ...
+ $ HomeScoreBeforePlay   : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ VisitorScoreBeforePlay: int  0 0 0 0 0 0 0 0 0 0 ...
+ $ NflIdRusher           : int  2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 2543773 ...
+ $ OffenseFormation      : chr  "SHOTGUN" "SHOTGUN" "SHOTGUN" "SHOTGUN" ...
+ $ OffensePersonnel      : chr  "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" ...
+ $ DefendersInTheBox     : num  6 6 6 6 6 6 6 6 6 6 ...
+ $ PlayDirection         : chr  "left" "left" "left" "left" ...
+ $ Yards                 : int  8 8 8 8 8 8 8 8 8 8 ...
+ $ PlayerHeight          : num  3 4.5 4.5 4.5 3 4 8 3 4 3 ...
+ $ PlayerWeight          : int  212 288 270 245 206 252 190 193 208 197 ...
+ $ PlayerCollegeName     : chr  "Tennessee" "Miami" "Georgia" "Texas" ...
+ $ Position              : chr  "SS" "DE" "DE" "ILB" ...
+ $ HomeTeamAbbr          : chr  "NE" "NE" "NE" "NE" ...
+ $ VisitorTeamAbbr       : chr  "KC" "KC" "KC" "KC" ...
+ $ Week                  : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ Stadium               : chr  "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" ...
+ $ Location              : chr  "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" ...
+ $ StadiumType           : chr  "outdoor" "outdoor" "outdoor" "outdoor" ...
+ $ Turf                  : chr  "Field Turf" "Field Turf" "Field Turf" "Field Turf" ...
+ $ GameWeather           : chr  "clear" "clear" "clear" "clear" ...
+ $ Temperature           : int  63 63 63 63 63 63 63 63 63 63 ...
+ $ Humidity              : int  77 77 77 77 77 77 77 77 77 77 ...
+ $ WindSpeed             : num  8 8 8 8 8 8 8 8 8 8 ...
+ $ WindDirection         : chr  "south west" "south west" "south west" "south west" ...
+ $ TimeDelta             : num  1 1 1 1 1 1 1 1 1 1 ...
+ $ BirthYear             : int  29 25 21 22 17 19 17 4 5 9 ...
+ $ GameHour              : int  14 14 14 14 14 14 14 14 14 14 ...
+ $ DL                    : Named num  2 2 2 2 2 2 2 2 2 2 ...
+  ..- attr(*, "names")= chr [1:682154] "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" ...
+ $ LB                    : Named num  3 3 3 3 3 3 3 3 3 3 ...
+  ..- attr(*, "names")= chr [1:682154] "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" ...
+ $ BL                    : Named num  6 6 6 6 6 6 6 6 6 6 ...
+  ..- attr(*, "names")= chr [1:682154] "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" ...
+ $ OL                    : Named num  0 0 0 0 0 0 0 0 0 0 ...
+  ..- attr(*, "names")= chr [1:682154] "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" "2 DL, 3 LB, 6 DB" ...</code></pre>
+</div>
+</div>
+<p>Continuing now, we can encode all categorical variables:</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now you can count the missing values again</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>missing_values_count <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df, <span class="cf">function</span>(x) <span class="fu">sum</span>(<span class="fu">is.na</span>(x)))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the count of missing values for each column</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(missing_values_count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                GameId                 PlayId                   Team 
+                     0                      0                      0 
+                     X                      Y                      S 
+                     0                      0                      0 
+                     A                    Dis            Orientation 
+                     0                      0                      0 
+                   Dir                  NflId            DisplayName 
+                     0                      0                      0 
+          JerseyNumber                 Season               YardLine 
+                     0                      0                      0 
+               Quarter         PossessionTeam                   Down 
+                     0                      0                      0 
+              Distance          FieldPosition    HomeScoreBeforePlay 
+                     0                      0                      0 
+VisitorScoreBeforePlay            NflIdRusher       OffenseFormation 
+                     0                      0                      0 
+      OffensePersonnel      DefendersInTheBox          PlayDirection 
+                     0                      0                      0 
+                 Yards           PlayerHeight           PlayerWeight 
+                     0                      0                      0 
+     PlayerCollegeName               Position           HomeTeamAbbr 
+                     0                      0                      0 
+       VisitorTeamAbbr                   Week                Stadium 
+                     0                      0                      0 
+              Location            StadiumType                   Turf 
+                     0                      0                      0 
+           GameWeather            Temperature               Humidity 
+                     0                      0                      0 
+             WindSpeed          WindDirection              TimeDelta 
+                     0                      0                      0 
+             BirthYear               GameHour                     DL 
+                     0                      0                      0 
+                    LB                     BL                     OL 
+                     0                      0                      0 </code></pre>
+</div>
+</div>
+<p>Now for some data preprocessing. The data is currently time series data that includes a row for each player during each individual play of every snap in every game. We want to change each row to be its own play in order to not only understand the data better but also to create independent rows. Here we go through the steps to achieve this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Dropping columns</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># df &lt;- df %&gt;% select(-GameId, -PlayId, -NflId, -NflIdRusher)</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Assigning specified columns to 'one', 'two', and 'more'</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>one <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'PlayId'</span>, <span class="st">'Season'</span>, <span class="st">'YardLine'</span>, <span class="st">'Quarter'</span>, <span class="st">'PossessionTeam'</span>, <span class="st">'Down'</span>, <span class="st">'Distance'</span>,</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>         <span class="st">'FieldPosition'</span>, <span class="st">'HomeScoreBeforePlay'</span>, <span class="st">'VisitorScoreBeforePlay'</span>, <span class="st">'OffenseFormation'</span>,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>         <span class="st">'OffensePersonnel'</span>, <span class="st">'DefendersInTheBox'</span>, <span class="st">'PlayDirection'</span>, <span class="st">'Yards'</span>, <span class="st">'HomeTeamAbbr'</span>,</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>         <span class="st">'VisitorTeamAbbr'</span>, <span class="st">'Week'</span>, <span class="st">'Stadium'</span>, <span class="st">'Location'</span>, <span class="st">'StadiumType'</span>, <span class="st">'Turf'</span>,</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>         <span class="st">'GameWeather'</span>, <span class="st">'Temperature'</span>, <span class="st">'Humidity'</span>, <span class="st">'WindSpeed'</span>, <span class="st">'WindDirection'</span>,</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>         <span class="st">'TimeDelta'</span>, <span class="st">'GameHour'</span>, <span class="st">'DL'</span>, <span class="st">'LB'</span>, <span class="st">'BL'</span>, <span class="st">'OL'</span>)</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>two <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Team'</span>)</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>more <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'X'</span>, <span class="st">'Y'</span>, <span class="st">'S'</span>, <span class="st">'A'</span>, <span class="st">'Dis'</span>, <span class="st">'Orientation'</span>, <span class="st">'Dir'</span>, <span class="st">'DisplayName'</span>, <span class="st">'JerseyNumber'</span>,</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>          <span class="st">'PlayerHeight'</span>, <span class="st">'PlayerWeight'</span>, <span class="st">'PlayerCollegeName'</span>, <span class="st">'Position'</span>, <span class="st">'BirthYear'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ... (rest of your code initializing 'one', 'two', and 'more')</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PlayId"</span>)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(new_cols, <span class="fu">paste0</span>(col, <span class="st">'A'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>), <span class="fu">paste0</span>(col, <span class="st">'B'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>))</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>max_rows <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df) <span class="sc">/</span> <span class="dv">22</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize the train DataFrame with an additional column for PlayId</span></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">ncol =</span> <span class="fu">length</span>(new_cols), <span class="at">nrow =</span> max_rows))</span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(train) <span class="ot">&lt;-</span> new_cols</span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Populate the train DataFrame</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">21</span>) {</span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>    index <span class="ot">&lt;-</span> <span class="fu">seq</span>(i <span class="sc">+</span> <span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    col_name_A <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'A'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    col_name_B <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'B'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assign values to train DataFrame</span></span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>      train[<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(index), col_name_A] <span class="ot">&lt;-</span> df[index, col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>        train[<span class="dv">1</span><span class="sc">:</span>(<span class="fu">length</span>(index) <span class="sc">-</span> <span class="dv">1</span>), col_name_B] <span class="ot">&lt;-</span> df[index[<span class="sc">-</span><span class="dv">1</span>], col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Assign PlayId values to the train DataFrame</span></span>
+<span id="cb37-35"><a href="#cb37-35" aria-hidden="true" tabindex="-1"></a><span class="co"># The length of the repeated PlayIds should match the number of rows in 'train'</span></span>
+<span id="cb37-36"><a href="#cb37-36" aria-hidden="true" tabindex="-1"></a>play_ids <span class="ot">&lt;-</span> df<span class="sc">$</span>PlayId[<span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)]</span>
+<span id="cb37-37"><a href="#cb37-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-38"><a href="#cb37-38" aria-hidden="true" tabindex="-1"></a><span class="co"># The number of times each PlayId should be repeated</span></span>
+<span id="cb37-39"><a href="#cb37-39" aria-hidden="true" tabindex="-1"></a><span class="co"># This should match the number of rows in 'train' that correspond to each play</span></span>
+<span id="cb37-40"><a href="#cb37-40" aria-hidden="true" tabindex="-1"></a>repeat_count <span class="ot">&lt;-</span> <span class="fu">nrow</span>(train) <span class="sc">/</span> <span class="fu">length</span>(play_ids)</span>
+<span id="cb37-41"><a href="#cb37-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-42"><a href="#cb37-42" aria-hidden="true" tabindex="-1"></a>train<span class="sc">$</span>PlayId <span class="ot">&lt;-</span> <span class="fu">rep</span>(play_ids, <span class="at">each =</span> repeat_count)</span>
+<span id="cb37-43"><a href="#cb37-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-44"><a href="#cb37-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if the number of rows match</span></span>
+<span id="cb37-45"><a href="#cb37-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(train) <span class="sc">!=</span> <span class="fu">length</span>(train<span class="sc">$</span>PlayId)) {</span>
+<span id="cb37-46"><a href="#cb37-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Mismatch in the number of rows between 'train' and 'PlayId'."</span>)</span>
+<span id="cb37-47"><a href="#cb37-47" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now you can count the missing values again</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>missing_values_count <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df, <span class="cf">function</span>(x) <span class="fu">sum</span>(<span class="fu">is.na</span>(x)))</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the count of missing values for each column</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(missing_values_count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                GameId                 PlayId                   Team 
+                     0                      0                      0 
+                     X                      Y                      S 
+                     0                      0                      0 
+                     A                    Dis            Orientation 
+                     0                      0                      0 
+                   Dir                  NflId            DisplayName 
+                     0                      0                      0 
+          JerseyNumber                 Season               YardLine 
+                     0                      0                      0 
+               Quarter         PossessionTeam                   Down 
+                     0                      0                      0 
+              Distance          FieldPosition    HomeScoreBeforePlay 
+                     0                      0                      0 
+VisitorScoreBeforePlay            NflIdRusher       OffenseFormation 
+                     0                      0                      0 
+      OffensePersonnel      DefendersInTheBox          PlayDirection 
+                     0                      0                      0 
+                 Yards           PlayerHeight           PlayerWeight 
+                     0                      0                      0 
+     PlayerCollegeName               Position           HomeTeamAbbr 
+                     0                      0                      0 
+       VisitorTeamAbbr                   Week                Stadium 
+                     0                      0                      0 
+              Location            StadiumType                   Turf 
+                     0                      0                      0 
+           GameWeather            Temperature               Humidity 
+                     0                      0                      0 
+             WindSpeed          WindDirection              TimeDelta 
+                     0                      0                      0 
+             BirthYear               GameHour                     DL 
+                     0                      0                      0 
+                    LB                     BL                     OL 
+                     0                      0                      0 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the list 'one' with the correct column names that exist in your dataframe</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>one <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'Season'</span>, <span class="st">'YardLine'</span>, <span class="st">'Quarter'</span>, <span class="st">'PossessionTeam'</span>, <span class="st">'Down'</span>, <span class="st">'Distance'</span>,</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>         <span class="st">'FieldPosition'</span>, <span class="st">'HomeScoreBeforePlay'</span>, <span class="st">'VisitorScoreBeforePlay'</span>, <span class="st">'OffenseFormation'</span>,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">'OffensePersonnel'</span>, <span class="st">'DefendersInTheBox'</span>, <span class="st">'PlayDirection'</span>, <span class="st">'Yards'</span>, <span class="st">'HomeTeamAbbr'</span>,</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>         <span class="st">'VisitorTeamAbbr'</span>, <span class="st">'Week'</span>, <span class="st">'Stadium'</span>, <span class="st">'Location'</span>, <span class="st">'StadiumType'</span>, <span class="st">'Turf'</span>,</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">'GameWeather'</span>, <span class="st">'Temperature'</span>, <span class="st">'Humidity'</span>, <span class="st">'WindSpeed'</span>, <span class="st">'WindDirection'</span>,</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">'TimeDelta'</span>, <span class="st">'GameHour'</span>, <span class="st">'DL'</span>, <span class="st">'LB'</span>, <span class="st">'BL'</span>, <span class="st">'OL'</span>)</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if all columns in 'one' exist in 'df'</span></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="fu">all</span>(one <span class="sc">%in%</span> <span class="fu">names</span>(df))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># If the above check returns TRUE, proceed to group and summarise</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">all</span>(one <span class="sc">%in%</span> <span class="fu">names</span>(df))) {</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  df_one <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(PlayId) <span class="sc">%&gt;%</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(one), <span class="sc">~</span> <span class="fu">first</span>(<span class="fu">na.omit</span>(.x))))</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(df_one)</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"One or more columns in 'one' do not exist in the dataframe."</span>)</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 31,007 × 33
+    PlayId Season YardLine Quarter PossessionTeam  Down Distance FieldPosition
+     &lt;dbl&gt;  &lt;int&gt;    &lt;int&gt;   &lt;int&gt; &lt;chr&gt;          &lt;int&gt;    &lt;int&gt; &lt;chr&gt;        
+ 1 2.02e13   2017       35       1 NE                 3        2 NE           
+ 2 2.02e13   2017       43       1 NE                 1       10 NE           
+ 3 2.02e13   2017       35       1 NE                 1       10 KC           
+ 4 2.02e13   2017        2       1 NE                 2        2 KC           
+ 5 2.02e13   2017       25       1 KC                 1       10 KC           
+ 6 2.02e13   2017       29       1 NE                 3        7 KC           
+ 7 2.02e13   2017       19       1 NE                 2       10 KC           
+ 8 2.02e13   2017       10       1 NE                 4        1 KC           
+ 9 2.02e13   2017       10       1 KC                 1       10 KC           
+10 2.02e13   2017       50       1 KC                 1       10 KC           
+# ℹ 30,997 more rows
+# ℹ 25 more variables: HomeScoreBeforePlay &lt;int&gt;, VisitorScoreBeforePlay &lt;int&gt;,
+#   OffenseFormation &lt;chr&gt;, OffensePersonnel &lt;chr&gt;, DefendersInTheBox &lt;dbl&gt;,
+#   PlayDirection &lt;chr&gt;, Yards &lt;int&gt;, HomeTeamAbbr &lt;chr&gt;,
+#   VisitorTeamAbbr &lt;chr&gt;, Week &lt;int&gt;, Stadium &lt;chr&gt;, Location &lt;chr&gt;,
+#   StadiumType &lt;chr&gt;, Turf &lt;chr&gt;, GameWeather &lt;chr&gt;, Temperature &lt;int&gt;,
+#   Humidity &lt;int&gt;, WindSpeed &lt;dbl&gt;, WindDirection &lt;chr&gt;, TimeDelta &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(df_one)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [31,007 × 33] (S3: tbl_df/tbl/data.frame)
+ $ PlayId                : num [1:31007] 2.02e+13 2.02e+13 2.02e+13 2.02e+13 2.02e+13 ...
+ $ Season                : int [1:31007] 2017 2017 2017 2017 2017 2017 2017 2017 2017 2017 ...
+ $ YardLine              : int [1:31007] 35 43 35 2 25 29 19 10 10 50 ...
+ $ Quarter               : int [1:31007] 1 1 1 1 1 1 1 1 1 1 ...
+ $ PossessionTeam        : chr [1:31007] "NE" "NE" "NE" "NE" ...
+ $ Down                  : int [1:31007] 3 1 1 2 1 3 2 4 1 1 ...
+ $ Distance              : int [1:31007] 2 10 10 2 10 7 10 1 10 10 ...
+ $ FieldPosition         : chr [1:31007] "NE" "NE" "KC" "KC" ...
+ $ HomeScoreBeforePlay   : int [1:31007] 0 0 0 0 7 7 7 7 7 7 ...
+ $ VisitorScoreBeforePlay: int [1:31007] 0 0 0 0 0 0 0 0 0 0 ...
+ $ OffenseFormation      : chr [1:31007] "SHOTGUN" "SHOTGUN" "SINGLEBACK" "JUMBO" ...
+ $ OffensePersonnel      : chr [1:31007] "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "1 RB, 1 TE, 3 WR" "6 OL, 2 RB, 2 TE, 0 WR" ...
+ $ DefendersInTheBox     : num [1:31007] 6 6 7 9 7 5 8 9 7 7 ...
+ $ PlayDirection         : chr [1:31007] "left" "left" "left" "left" ...
+ $ Yards                 : int [1:31007] 8 3 5 2 7 10 -1 0 9 9 ...
+ $ HomeTeamAbbr          : chr [1:31007] "NE" "NE" "NE" "NE" ...
+ $ VisitorTeamAbbr       : chr [1:31007] "KC" "KC" "KC" "KC" ...
+ $ Week                  : int [1:31007] 1 1 1 1 1 1 1 1 1 1 ...
+ $ Stadium               : chr [1:31007] "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" "Gillette Stadium" ...
+ $ Location              : chr [1:31007] "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" "Foxborough, MA" ...
+ $ StadiumType           : chr [1:31007] "outdoor" "outdoor" "outdoor" "outdoor" ...
+ $ Turf                  : chr [1:31007] "Field Turf" "Field Turf" "Field Turf" "Field Turf" ...
+ $ GameWeather           : chr [1:31007] "clear" "clear" "clear" "clear" ...
+ $ Temperature           : int [1:31007] 63 63 63 63 63 63 63 63 63 63 ...
+ $ Humidity              : int [1:31007] 77 77 77 77 77 77 77 77 77 77 ...
+ $ WindSpeed             : num [1:31007] 8 8 8 8 8 8 8 8 8 8 ...
+ $ WindDirection         : chr [1:31007] "south west" "south west" "south west" "south west" ...
+ $ TimeDelta             : num [1:31007] 1 1 2 2 1 1 1 1 1 1 ...
+ $ GameHour              : int [1:31007] 14 13 13 12 12 11 10 9 9 6 ...
+ $ DL                    : num [1:31007] 2 2 2 4 3 2 3 3 3 3 ...
+ $ LB                    : num [1:31007] 3 3 3 4 2 3 4 4 2 2 ...
+ $ BL                    : num [1:31007] 6 6 6 3 6 6 4 4 6 6 ...
+ $ OL                    : num [1:31007] 0 0 0 0 0 0 0 0 0 0 ...</code></pre>
+</div>
+</div>
+<p>Finally, we merge the two dataframes to include all of the columns that we need and then save it to a csv file:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge the summary dataframe with 'train' on 'PlayId'</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>train_merged <span class="ot">&lt;-</span> <span class="fu">merge</span>(train, df_one, <span class="at">by =</span> <span class="st">"PlayId"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(train_merged)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "PlayId"                 "XA0"                    "XA1"                   
+  [4] "XA2"                    "XA3"                    "XA4"                   
+  [7] "XA5"                    "XA6"                    "XA7"                   
+ [10] "XA8"                    "XA9"                    "XA10"                  
+ [13] "XB0"                    "XB1"                    "XB2"                   
+ [16] "XB3"                    "XB4"                    "XB5"                   
+ [19] "XB6"                    "XB7"                    "XB8"                   
+ [22] "XB9"                    "XB10"                   "YA0"                   
+ [25] "YA1"                    "YA2"                    "YA3"                   
+ [28] "YA4"                    "YA5"                    "YA6"                   
+ [31] "YA7"                    "YA8"                    "YA9"                   
+ [34] "YA10"                   "YB0"                    "YB1"                   
+ [37] "YB2"                    "YB3"                    "YB4"                   
+ [40] "YB5"                    "YB6"                    "YB7"                   
+ [43] "YB8"                    "YB9"                    "YB10"                  
+ [46] "SA0"                    "SA1"                    "SA2"                   
+ [49] "SA3"                    "SA4"                    "SA5"                   
+ [52] "SA6"                    "SA7"                    "SA8"                   
+ [55] "SA9"                    "SA10"                   "SB0"                   
+ [58] "SB1"                    "SB2"                    "SB3"                   
+ [61] "SB4"                    "SB5"                    "SB6"                   
+ [64] "SB7"                    "SB8"                    "SB9"                   
+ [67] "SB10"                   "AA0"                    "AA1"                   
+ [70] "AA2"                    "AA3"                    "AA4"                   
+ [73] "AA5"                    "AA6"                    "AA7"                   
+ [76] "AA8"                    "AA9"                    "AA10"                  
+ [79] "AB0"                    "AB1"                    "AB2"                   
+ [82] "AB3"                    "AB4"                    "AB5"                   
+ [85] "AB6"                    "AB7"                    "AB8"                   
+ [88] "AB9"                    "AB10"                   "DisA0"                 
+ [91] "DisA1"                  "DisA2"                  "DisA3"                 
+ [94] "DisA4"                  "DisA5"                  "DisA6"                 
+ [97] "DisA7"                  "DisA8"                  "DisA9"                 
+[100] "DisA10"                 "DisB0"                  "DisB1"                 
+[103] "DisB2"                  "DisB3"                  "DisB4"                 
+[106] "DisB5"                  "DisB6"                  "DisB7"                 
+[109] "DisB8"                  "DisB9"                  "DisB10"                
+[112] "OrientationA0"          "OrientationA1"          "OrientationA2"         
+[115] "OrientationA3"          "OrientationA4"          "OrientationA5"         
+[118] "OrientationA6"          "OrientationA7"          "OrientationA8"         
+[121] "OrientationA9"          "OrientationA10"         "OrientationB0"         
+[124] "OrientationB1"          "OrientationB2"          "OrientationB3"         
+[127] "OrientationB4"          "OrientationB5"          "OrientationB6"         
+[130] "OrientationB7"          "OrientationB8"          "OrientationB9"         
+[133] "OrientationB10"         "DirA0"                  "DirA1"                 
+[136] "DirA2"                  "DirA3"                  "DirA4"                 
+[139] "DirA5"                  "DirA6"                  "DirA7"                 
+[142] "DirA8"                  "DirA9"                  "DirA10"                
+[145] "DirB0"                  "DirB1"                  "DirB2"                 
+[148] "DirB3"                  "DirB4"                  "DirB5"                 
+[151] "DirB6"                  "DirB7"                  "DirB8"                 
+[154] "DirB9"                  "DirB10"                 "DisplayNameA0"         
+[157] "DisplayNameA1"          "DisplayNameA2"          "DisplayNameA3"         
+[160] "DisplayNameA4"          "DisplayNameA5"          "DisplayNameA6"         
+[163] "DisplayNameA7"          "DisplayNameA8"          "DisplayNameA9"         
+[166] "DisplayNameA10"         "DisplayNameB0"          "DisplayNameB1"         
+[169] "DisplayNameB2"          "DisplayNameB3"          "DisplayNameB4"         
+[172] "DisplayNameB5"          "DisplayNameB6"          "DisplayNameB7"         
+[175] "DisplayNameB8"          "DisplayNameB9"          "DisplayNameB10"        
+[178] "JerseyNumberA0"         "JerseyNumberA1"         "JerseyNumberA2"        
+[181] "JerseyNumberA3"         "JerseyNumberA4"         "JerseyNumberA5"        
+[184] "JerseyNumberA6"         "JerseyNumberA7"         "JerseyNumberA8"        
+[187] "JerseyNumberA9"         "JerseyNumberA10"        "JerseyNumberB0"        
+[190] "JerseyNumberB1"         "JerseyNumberB2"         "JerseyNumberB3"        
+[193] "JerseyNumberB4"         "JerseyNumberB5"         "JerseyNumberB6"        
+[196] "JerseyNumberB7"         "JerseyNumberB8"         "JerseyNumberB9"        
+[199] "JerseyNumberB10"        "PlayerHeightA0"         "PlayerHeightA1"        
+[202] "PlayerHeightA2"         "PlayerHeightA3"         "PlayerHeightA4"        
+[205] "PlayerHeightA5"         "PlayerHeightA6"         "PlayerHeightA7"        
+[208] "PlayerHeightA8"         "PlayerHeightA9"         "PlayerHeightA10"       
+[211] "PlayerHeightB0"         "PlayerHeightB1"         "PlayerHeightB2"        
+[214] "PlayerHeightB3"         "PlayerHeightB4"         "PlayerHeightB5"        
+[217] "PlayerHeightB6"         "PlayerHeightB7"         "PlayerHeightB8"        
+[220] "PlayerHeightB9"         "PlayerHeightB10"        "PlayerWeightA0"        
+[223] "PlayerWeightA1"         "PlayerWeightA2"         "PlayerWeightA3"        
+[226] "PlayerWeightA4"         "PlayerWeightA5"         "PlayerWeightA6"        
+[229] "PlayerWeightA7"         "PlayerWeightA8"         "PlayerWeightA9"        
+[232] "PlayerWeightA10"        "PlayerWeightB0"         "PlayerWeightB1"        
+[235] "PlayerWeightB2"         "PlayerWeightB3"         "PlayerWeightB4"        
+[238] "PlayerWeightB5"         "PlayerWeightB6"         "PlayerWeightB7"        
+[241] "PlayerWeightB8"         "PlayerWeightB9"         "PlayerWeightB10"       
+[244] "PlayerCollegeNameA0"    "PlayerCollegeNameA1"    "PlayerCollegeNameA2"   
+[247] "PlayerCollegeNameA3"    "PlayerCollegeNameA4"    "PlayerCollegeNameA5"   
+[250] "PlayerCollegeNameA6"    "PlayerCollegeNameA7"    "PlayerCollegeNameA8"   
+[253] "PlayerCollegeNameA9"    "PlayerCollegeNameA10"   "PlayerCollegeNameB0"   
+[256] "PlayerCollegeNameB1"    "PlayerCollegeNameB2"    "PlayerCollegeNameB3"   
+[259] "PlayerCollegeNameB4"    "PlayerCollegeNameB5"    "PlayerCollegeNameB6"   
+[262] "PlayerCollegeNameB7"    "PlayerCollegeNameB8"    "PlayerCollegeNameB9"   
+[265] "PlayerCollegeNameB10"   "PositionA0"             "PositionA1"            
+[268] "PositionA2"             "PositionA3"             "PositionA4"            
+[271] "PositionA5"             "PositionA6"             "PositionA7"            
+[274] "PositionA8"             "PositionA9"             "PositionA10"           
+[277] "PositionB0"             "PositionB1"             "PositionB2"            
+[280] "PositionB3"             "PositionB4"             "PositionB5"            
+[283] "PositionB6"             "PositionB7"             "PositionB8"            
+[286] "PositionB9"             "PositionB10"            "BirthYearA0"           
+[289] "BirthYearA1"            "BirthYearA2"            "BirthYearA3"           
+[292] "BirthYearA4"            "BirthYearA5"            "BirthYearA6"           
+[295] "BirthYearA7"            "BirthYearA8"            "BirthYearA9"           
+[298] "BirthYearA10"           "BirthYearB0"            "BirthYearB1"           
+[301] "BirthYearB2"            "BirthYearB3"            "BirthYearB4"           
+[304] "BirthYearB5"            "BirthYearB6"            "BirthYearB7"           
+[307] "BirthYearB8"            "BirthYearB9"            "BirthYearB10"          
+[310] "Season"                 "YardLine"               "Quarter"               
+[313] "PossessionTeam"         "Down"                   "Distance"              
+[316] "FieldPosition"          "HomeScoreBeforePlay"    "VisitorScoreBeforePlay"
+[319] "OffenseFormation"       "OffensePersonnel"       "DefendersInTheBox"     
+[322] "PlayDirection"          "Yards"                  "HomeTeamAbbr"          
+[325] "VisitorTeamAbbr"        "Week"                   "Stadium"               
+[328] "Location"               "StadiumType"            "Turf"                  
+[331] "GameWeather"            "Temperature"            "Humidity"              
+[334] "WindSpeed"              "WindDirection"          "TimeDelta"             
+[337] "GameHour"               "DL"                     "LB"                    
+[340] "BL"                     "OL"                    </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming 'df' is your dataframe</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="co"># write.csv(train_merged, file = "cleaned_train_r.csv", row.names = FALSE)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
