@@ -1,0 +1,53 @@
+---
+title: "Untitled"
+format: html
+---
+
+We will begin by importing the cleaned training dataset.
+
+```{r}
+library(tidyverse)
+library(caret)
+
+train <- read_csv("cleaned_train_r.csv")
+names(train)
+```
+
+Lets start by reducing the dimensionality of this dataset. We will remove varibales that are not observable prior to the snap of the ball. These variables include the speed of each player (SA0 to SB10), the acceleration of each player (AA0-AB10), the direction the player is running in (DirA0-DirB10), the jersey number of each player (JerseyNumberA0-JerseyNumberB10), and the time between snap and the handoff (TimeDelta). Then lets obtain the entire structure of the dataset.
+
+```{r}
+train$ScoreDelta <- train$HomeScoreBeforePlay - train$VisitorScoreBeforePlay
+train <- train %>% select(-starts_with("SA"), -starts_with("SB"), -starts_with("AA"), -starts_with("AB"), -starts_with("DirA"), -starts_with("DirB"), -starts_with("DisA"), -starts_with("DisB"), -starts_with("JerseyNumber"), -TimeDelta, -starts_with("HomeScoreBeforePlay"), -starts_with("VisitorScoreBeforePlay"), -ends_with("TeamAbbr"), -starts_with("PlayerCollege"), -starts_with("Position"), -starts_with("Birth"), -starts_with("Location"), -starts_with("PlayID"), -starts_with("Season"))
+
+train <- train %>% mutate(OffenseFormation = as.factor(OffenseFormation), PossessionTeam = as.factor(PossessionTeam), FieldPosition = as.factor(FieldPosition), PlayDirection = as.factor(PlayDirection), StadiumType = as.factor(StadiumType), Turf = as.factor(Turf), GameWeather = as.factor(GameWeather), WindDirection = as.factor(WindDirection), Down = as.factor(Down), Quarter = as.factor(Quarter), Distance = as.factor(Distance), Week = as.factor(Week), DL = as.factor(DL), LB = as.factor(LB), BL = as.factor(BL), GameHour = as.factor(GameHour))
+
+train$OffensePersonnel <- ifelse(grepl("OL", train$OffensePersonnel), train$OffensePersonnel, paste0("0 OL, ", train$OffensePersonnel))
+
+train <- train %>% separate(OffensePersonnel, into = c("OL", "RB", "TE", "WR"), sep = ",\\s*", convert = TRUE)
+
+train$OL <- NULL
+
+train$RB <- as.numeric(gsub("[^0-9.]", "", train$RB))
+train$TE <- as.numeric(gsub("[^0-9.]", "", train$TE))
+train$WR <- as.numeric(gsub("[^0-9.]", "", train$WR))
+
+names(train)
+```
+
+Lets randomize all rows in the train datset to ensure independence.
+
+```{r}
+set.seed(69)
+train <- train[sample(nrow(train)),]
+```
+
+```{r}
+#print the first 5 rows of the dataset and show all 227 columns
+str(train, list.len=ncol(train))
+```
+
+Now lets save this new fully cleaned and ready to use dataset.
+
+```{r}
+write_csv(train, "train_ready.csv")
+```
