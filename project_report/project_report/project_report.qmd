@@ -1,5 +1,6 @@
 ---
 title: The Application of Machine Learning to Predict NFL Running Back Performance 
+subtitle: STATS-5405
 author:
   - name: Giovanni Lunetta
     email: giovanni.lunetta@uconn.edu
