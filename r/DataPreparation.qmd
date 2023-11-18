@@ -9,7 +9,7 @@ We will begin by importing the cleaned training dataset.
 library(tidyverse)
 library(caret)
 
-train <- read_csv("cleaned_train_r.csv")
+train <- read_csv("/Users/samlutz10/Desktop/STAT5405/Final Project/cleaned_train_r.csv")
 names(train)
 ```
 
@@ -17,9 +17,9 @@ Lets start by reducing the dimensionality of this dataset. We will remove variba
 
 ```{r}
 train$ScoreDelta <- train$HomeScoreBeforePlay - train$VisitorScoreBeforePlay
-train <- train %>% select(-starts_with("SA"), -starts_with("SB"), -starts_with("AA"), -starts_with("AB"), -starts_with("DirA"), -starts_with("DirB"), -starts_with("DisA"), -starts_with("DisB"), -starts_with("JerseyNumber"), -TimeDelta, -starts_with("HomeScoreBeforePlay"), -starts_with("VisitorScoreBeforePlay"), -ends_with("TeamAbbr"), -starts_with("PlayerCollege"), -starts_with("Position"), -starts_with("Birth"), -starts_with("Location"), -starts_with("PlayID"), -starts_with("Season"))
+train <- train %>% select(-starts_with("SA"), -starts_with("SB"), -starts_with("AA"), -starts_with("AB"), -starts_with("DirA"), -starts_with("DirB"), -starts_with("DisA"), -starts_with("DisB"), -starts_with("JerseyNumber"), -TimeDelta, -starts_with("HomeScoreBeforePlay"), -starts_with("VisitorScoreBeforePlay"), -ends_with("TeamAbbr"), -starts_with("PlayerCollege"), -starts_with("Position"), -starts_with("Birth"), -starts_with("Location"), -starts_with("PlayID"), -starts_with("Season"), -starts_with("Display"), -starts_with("Stadium"), -starts_with("Possession"), -starts_with("FieldPosition"), -starts_with("Turf"))
 
-train <- train %>% mutate(OffenseFormation = as.factor(OffenseFormation), PossessionTeam = as.factor(PossessionTeam), FieldPosition = as.factor(FieldPosition), PlayDirection = as.factor(PlayDirection), StadiumType = as.factor(StadiumType), Turf = as.factor(Turf), GameWeather = as.factor(GameWeather), WindDirection = as.factor(WindDirection), Down = as.factor(Down), Quarter = as.factor(Quarter), Distance = as.factor(Distance), Week = as.factor(Week), DL = as.factor(DL), LB = as.factor(LB), BL = as.factor(BL), GameHour = as.factor(GameHour))
+train <- train %>% mutate(OffenseFormation = as.factor(OffenseFormation),  PlayDirection = as.factor(PlayDirection), GameWeather = as.factor(GameWeather), WindDirection = as.factor(WindDirection), Down = as.factor(Down), Quarter = as.factor(Quarter), Distance = as.factor(Distance), Week = as.factor(Week), DL = as.factor(DL), LB = as.factor(LB), BL = as.factor(BL), GameHour = as.factor(GameHour))
 
 train$OffensePersonnel <- ifelse(grepl("OL", train$OffensePersonnel), train$OffensePersonnel, paste0("0 OL, ", train$OffensePersonnel))
 
@@ -49,5 +49,5 @@ str(train, list.len=ncol(train))
 Now lets save this new fully cleaned and ready to use dataset.
 
 ```{r}
-write_csv(train, "train_ready.csv")
+write_csv(train, "/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
 ```

@@ -165,43 +165,74 @@ The final step will be to interpret the models in the context of NFL games. This
 
 All analyses will be conducted in R, a statistical computing language that provides a wide array of packages for machine learning and data analysis. For MLR and GLM, we will utilize the `stats` package that comes with the R base installation. For our XGBoost model, we will use the `xgboost` package, which is specifically designed for speed and performance. Data manipulation and cleansing will be managed with packages like `dplyr` and `tidyr`, while `ggplot2` will be employed for data visualization to facilitate understanding and interpretation of the data and model outputs. For feature engineering and preprocessing, we will take advantage of `caret` or `recipes`. Hyperparameter tuning can be optimized using the `tune` package, and for cross-validation, the `rsample` package will be employed. The `broom` and `modelr` packages will be useful for tidying model outputs and working with models in a pipeline, respectively. This suite of packages will enable a comprehensive workflow within R for developing, evaluating, and interpreting the predictive models.
 
-# Equations
+# Multiple Linear Regression Model
 
-Here is an equation:
-$$ 
-  f_{X}(x) = \left(\frac{\alpha}{\beta}\right)
-  \left(\frac{x}{\beta}\right)^{\alpha-1}
-  e^{-\left(\frac{x}{\beta}\right)^{\alpha}}; 
-  \alpha,\beta,x > 0 .
-$$
+## Model Development
 
-Inline equations work as well: $\sum_{i = 2}^\infty\{\alpha_i^\beta\}$
-
-# Figures and tables
-
-@fig-meaningless is generated using an R chunk.
+First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
 
 ```{r}
-#| label: fig-meaningless
-#| fig-cap: A meaningless scatterplot
-#| fig-width: 5
-#| fig-height: 5
-#| fig-align: center
-#| out-width: 50%
-#| echo: false
-plot(runif(25), runif(25))
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
 ```
 
-# Tables coming from R
-
-Tables can also be generated using R chunks, as shown in @tbl-simple example.
+Now that the data has been imported, splitting the data into a training set and a testing set can commence. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data. 
 
 ```{r}
-#| label: tbl-simple
-#| tbl-cap: Caption centered above table
-#| echo: true
-knitr::kable(head(mtcars)[,1:4])
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
 ```
+
+ The average of yards in both the trainign and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
+
+ The average of yards in both the trainign and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
+
+```{r}
+# Check that the average of yards is about the same in both the training and testing sets
+(ave_train <- mean(train.set$Yards))
+(ave_test <- mean(test.set$Yards))
+(ave_all <- mean(football_data$Yards))
+```
+
+Based on the results above, the average of yards is about the same in both the training and testing sets. In addition, both of those are similar to that of the original dataset. 
+
+Now that the data has been split into a training set and a testing set, development of the model can begin.
+
+The first model that will be synthesized has only an intercept and no predictors.
+
+```{r}
+lm_model_null <- lm(Yards ~ 1, data = train.set)
+summary(lm_model_null)
+```
+
+```{r}
+# Fit the model
+lm_model_full <- lm(Yards ~ ., data = train.set)
+summary(lm_model_full)
+```
+
+Now lets use the step function to find the best model for the data.
+
+```{r}
+#lm_model_step <- step(lm_model_full, direction = "backward")
+#summary(lm_model_step)
+```
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
+
+```{r}
+par(mfrow = c(2, 2))
+plot(lm_model_full)
+```
+
+
 
 # References {-}
 

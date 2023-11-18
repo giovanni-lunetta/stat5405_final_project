@@ -246,7 +246,7 @@ predominantly pass-oriented league.
     Sports Analytics
 \end{keyword}
 \end{frontmatter}
-    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[sharp corners, boxrule=0pt, interior hidden, borderline west={3pt}{0pt}{shadecolor}, enhanced, frame hidden, breakable]}{\end{tcolorbox}}\fi
+    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, enhanced, borderline west={3pt}{0pt}{shadecolor}, boxrule=0pt, sharp corners, interior hidden, breakable]}{\end{tcolorbox}}\fi
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -606,65 +606,332 @@ working with models in a pipeline, respectively. This suite of packages
 will enable a comprehensive workflow within R for developing,
 evaluating, and interpreting the predictive models.
 
-\hypertarget{equations}{%
-\section{Equations}\label{equations}}
+\hypertarget{multiple-linear-regression-model}{%
+\section{Multiple Linear Regression
+Model}\label{multiple-linear-regression-model}}
 
-Here is an equation: \[ 
-  f_{X}(x) = \left(\frac{\alpha}{\beta}\right)
-  \left(\frac{x}{\beta}\right)^{\alpha-1}
-  e^{-\left(\frac{x}{\beta}\right)^{\alpha}}; 
-  \alpha,\beta,x > 0 .
-\]
+\hypertarget{model-development}{%
+\subsection{Model Development}\label{model-development}}
 
-Inline equations work as well: \(\sum_{i = 2}^\infty\{\alpha_i^\beta\}\)
-
-\hypertarget{figures-and-tables}{%
-\section{Figures and tables}\label{figures-and-tables}}
-
-Figure~\ref{fig-meaningless} is generated using an R chunk.
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.5\textwidth,height=\textheight]{project_report_files/figure-pdf/fig-meaningless-1.pdf}
-
-}
-
-\caption{\label{fig-meaningless}A meaningless scatterplot}
-
-\end{figure}
-
-\hypertarget{tables-coming-from-r}{%
-\section{Tables coming from R}\label{tables-coming-from-r}}
-
-Tables can also be generated using R chunks, as shown in
-Table~\ref{tbl-simple} example.
+First, lets start by importing the completely clean and ready to use
+dataset. This dataset was the result of procedures outlined in the data
+cleaning and preprocessing section.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\FunctionTok{head}\NormalTok{(mtcars)[,}\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{])}
+\CommentTok{\# Import the dataset}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"/Users/samlutz10/Desktop/STAT5405/Final Project/train\_ready.csv"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-\hypertarget{tbl-simple}{}
-\begin{longtable}[]{@{}lrrrr@{}}
-\caption{\label{tbl-simple}Caption centered above table}\tabularnewline
-\toprule\noalign{}
-& mpg & cyl & disp & hp \\
-\midrule\noalign{}
-\endfirsthead
-\toprule\noalign{}
-& mpg & cyl & disp & hp \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Mazda RX4 & 21.0 & 6 & 160 & 110 \\
-Mazda RX4 Wag & 21.0 & 6 & 160 & 110 \\
-Datsun 710 & 22.8 & 4 & 108 & 93 \\
-Hornet 4 Drive & 21.4 & 6 & 258 & 110 \\
-Hornet Sportabout & 18.7 & 8 & 360 & 175 \\
-Valiant & 18.1 & 6 & 225 & 105 \\
-\end{longtable}
+Now that the data has been imported, splitting the data into a training
+set and a testing set can commence. The training set will be used to
+train the model, while the testing set will be used to test the model.
+The training set will be 80\% of the data, while the testing set will be
+20\% of the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Split the data into a training set and a testing set}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123457}\NormalTok{)}
+\NormalTok{train.prop }\OtherTok{\textless{}{-}} \FloatTok{0.80}
+\NormalTok{strats }\OtherTok{\textless{}{-}}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards}
+\NormalTok{rr }\OtherTok{\textless{}{-}} \FunctionTok{split}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(strats), strats)}
+\NormalTok{idx }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{unlist}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(rr, }
+        \ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{sample}\NormalTok{(x, }\FunctionTok{length}\NormalTok{(x)}\SpecialCharTok{*}\NormalTok{train.prop)))))}
+\NormalTok{train.set }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[idx, ]}
+\NormalTok{test.set }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[}\SpecialCharTok{{-}}\NormalTok{idx, ]}
+\end{Highlighting}
+\end{Shaded}
+
+The average of yards in both the trainign and testing sets are computed
+to ensure they are about the same. In addition, both of those should be
+similar to that of the original dataset. This process will help to
+ensure that the training and testing sets are representative of the
+entire dataset.
+
+The average of yards in both the trainign and testing sets are computed
+to ensure they are about the same. In addition, both of those should be
+similar to that of the original dataset. This process will help to
+ensure that the training and testing sets are representative of the
+entire dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Check that the average of yards is about the same in both the training and testing sets}
+\NormalTok{(ave\_train }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train.set}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4.151264
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(ave\_test }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(test.set}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4.530165
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(ave\_all }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 4.227626
+\end{verbatim}
+
+Based on the results above, the average of yards is about the same in
+both the training and testing sets. In addition, both of those are
+similar to that of the original dataset.
+
+Now that the data has been split into a training set and a testing set,
+development of the model can begin.
+
+The first model that will be synthesized has only an intercept and no
+predictors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ train.set)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_null)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = Yards ~ 1, data = train.set)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-16.151  -3.151  -1.151   1.849  85.849 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  4.15126    0.03843     108   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 6.047 on 24757 degrees of freedom
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ train.set)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = Yards ~ ., data = train.set)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-17.608  -3.115  -1.115   1.415  87.578 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 3.208e+00  1.365e+01   0.235  0.81415    
+XA0                         2.115e-03  1.026e-02   0.206  0.83665    
+XA1                         6.044e-04  9.994e-03   0.060  0.95178    
+XA2                         1.416e-03  1.013e-02   0.140  0.88882    
+XA3                         1.334e-03  1.010e-02   0.132  0.89488    
+XA4                        -1.413e-03  1.005e-02  -0.141  0.88810    
+XA5                         2.272e-02  1.018e-02   2.231  0.02568 *  
+XA6                         3.460e-03  1.029e-02   0.336  0.73667    
+XA7                         5.608e-03  1.030e-02   0.545  0.58599    
+XA8                        -8.735e-03  9.910e-03  -0.881  0.37812    
+XA9                        -9.963e-03  1.009e-02  -0.988  0.32324    
+XA10                       -1.672e-02  9.481e-03  -1.763  0.07788 .  
+XB0                        -4.288e-03  1.025e-02  -0.418  0.67563    
+XB1                        -1.614e-02  1.000e-02  -1.613  0.10667    
+XB2                         5.075e-03  1.023e-02   0.496  0.61974    
+XB3                         1.889e-02  1.011e-02   1.869  0.06169 .  
+XB4                        -8.184e-03  1.004e-02  -0.815  0.41501    
+XB5                        -6.650e-03  1.026e-02  -0.648  0.51674    
+XB6                         2.272e-03  1.031e-02   0.220  0.82565    
+XB7                        -9.978e-03  1.029e-02  -0.969  0.33234    
+XB8                        -8.868e-04  9.904e-03  -0.090  0.92865    
+XB9                         7.402e-03  1.009e-02   0.733  0.46337    
+XB10                        1.180e-02  9.417e-03   1.253  0.21007    
+YA0                         1.894e-03  5.676e-03   0.334  0.73858    
+YA1                        -1.166e-02  5.695e-03  -2.048  0.04055 *  
+YA2                         3.674e-03  5.565e-03   0.660  0.50907    
+YA3                        -3.573e-03  5.465e-03  -0.654  0.51328    
+YA4                        -8.558e-03  5.501e-03  -1.556  0.11977    
+YA5                        -4.311e-04  5.535e-03  -0.078  0.93793    
+YA6                        -1.715e-03  5.437e-03  -0.316  0.75237    
+YA7                         7.581e-03  5.409e-03   1.402  0.16102    
+YA8                        -4.045e-03  5.248e-03  -0.771  0.44082    
+YA9                        -1.165e-02  5.047e-03  -2.309  0.02096 *  
+YA10                        6.684e-03  5.213e-03   1.282  0.19978    
+YB0                        -1.244e-02  5.702e-03  -2.182  0.02910 *  
+YB1                         4.802e-03  5.682e-03   0.845  0.39807    
+YB2                         1.628e-03  5.567e-03   0.292  0.76993    
+YB3                        -1.490e-03  5.425e-03  -0.275  0.78365    
+YB4                         7.618e-03  5.518e-03   1.381  0.16742    
+YB5                         3.068e-03  5.541e-03   0.554  0.57980    
+YB6                         4.511e-03  5.448e-03   0.828  0.40763    
+YB7                        -2.300e-03  5.406e-03  -0.426  0.67046    
+YB8                         5.315e-03  5.255e-03   1.011  0.31184    
+YB9                         3.448e-03  5.058e-03   0.682  0.49545    
+YB10                        4.123e-03  5.221e-03   0.790  0.42980    
+OrientationA0              -1.035e-04  4.525e-04  -0.229  0.81908    
+OrientationA1               7.511e-04  4.474e-04   1.679  0.09317 .  
+OrientationA2              -4.759e-04  4.438e-04  -1.072  0.28362    
+OrientationA3              -2.971e-04  4.515e-04  -0.658  0.51059    
+OrientationA4              -6.272e-04  4.642e-04  -1.351  0.17664    
+OrientationA5              -3.231e-04  4.594e-04  -0.703  0.48185    
+OrientationA6               2.306e-04  4.638e-04   0.497  0.61909    
+OrientationA7               5.940e-04  4.620e-04   1.286  0.19861    
+OrientationA8               1.120e-03  4.551e-04   2.461  0.01385 *  
+OrientationA9              -4.968e-05  4.569e-04  -0.109  0.91342    
+OrientationA10              1.489e-04  4.597e-04   0.324  0.74606    
+OrientationB0              -5.625e-04  4.530e-04  -1.242  0.21432    
+OrientationB1              -5.450e-04  4.471e-04  -1.219  0.22286    
+OrientationB2               5.859e-04  4.425e-04   1.324  0.18548    
+OrientationB3               2.462e-04  4.515e-04   0.545  0.58566    
+OrientationB4              -1.891e-04  4.638e-04  -0.408  0.68351    
+OrientationB5               1.311e-04  4.607e-04   0.284  0.77606    
+OrientationB6               1.164e-04  4.616e-04   0.252  0.80093    
+OrientationB7              -3.037e-04  4.618e-04  -0.658  0.51073    
+OrientationB8              -8.639e-04  4.567e-04  -1.891  0.05857 .  
+OrientationB9              -5.723e-04  4.593e-04  -1.246  0.21277    
+OrientationB10              1.151e-03  4.604e-04   2.500  0.01243 *  
+PlayerHeightA0              1.351e-02  3.381e-02   0.399  0.68953    
+PlayerHeightA1              2.663e-02  3.094e-02   0.861  0.38941    
+PlayerHeightA2              2.776e-02  3.000e-02   0.926  0.35471    
+PlayerHeightA3             -3.934e-02  3.032e-02  -1.297  0.19448    
+PlayerHeightA4              1.306e-02  3.027e-02   0.431  0.66615    
+PlayerHeightA5             -3.936e-03  2.988e-02  -0.132  0.89520    
+PlayerHeightA6             -7.397e-03  2.885e-02  -0.256  0.79763    
+PlayerHeightA7             -1.965e-02  2.892e-02  -0.680  0.49679    
+PlayerHeightA8              6.611e-02  2.804e-02   2.357  0.01841 *  
+PlayerHeightA9              6.905e-02  2.794e-02   2.471  0.01348 *  
+PlayerHeightA10             8.483e-02  2.866e-02   2.960  0.00308 ** 
+PlayerHeightB0              1.341e-02  3.367e-02   0.398  0.69032    
+PlayerHeightB1             -4.083e-02  3.070e-02  -1.330  0.18347    
+PlayerHeightB2              1.778e-04  2.977e-02   0.006  0.99524    
+PlayerHeightB3             -2.219e-02  2.990e-02  -0.742  0.45793    
+PlayerHeightB4             -1.208e-02  3.015e-02  -0.401  0.68868    
+PlayerHeightB5             -3.372e-02  2.958e-02  -1.140  0.25426    
+PlayerHeightB6             -2.345e-02  2.873e-02  -0.816  0.41435    
+PlayerHeightB7             -1.528e-02  2.880e-02  -0.530  0.59578    
+PlayerHeightB8             -4.601e-02  2.807e-02  -1.639  0.10122    
+PlayerHeightB9             -3.807e-02  2.778e-02  -1.370  0.17063    
+PlayerHeightB10            -2.854e-03  2.855e-02  -0.100  0.92036    
+PlayerWeightA0              1.104e-06  9.567e-04   0.001  0.99908    
+PlayerWeightA1             -1.105e-03  9.196e-04  -1.202  0.22953    
+PlayerWeightA2             -1.144e-03  9.037e-04  -1.265  0.20575    
+PlayerWeightA3             -1.399e-03  8.846e-04  -1.582  0.11365    
+PlayerWeightA4              3.763e-04  8.764e-04   0.429  0.66770    
+PlayerWeightA5             -3.678e-04  8.567e-04  -0.429  0.66765    
+PlayerWeightA6             -1.874e-03  8.589e-04  -2.182  0.02913 *  
+PlayerWeightA7             -7.449e-04  8.780e-04  -0.848  0.39622    
+PlayerWeightA8              4.261e-04  9.074e-04   0.470  0.63867    
+PlayerWeightA9             -3.073e-04  9.225e-04  -0.333  0.73901    
+PlayerWeightA10             2.223e-03  9.853e-04   2.256  0.02409 *  
+PlayerWeightB0              5.201e-04  9.502e-04   0.547  0.58416    
+PlayerWeightB1             -2.951e-04  9.151e-04  -0.323  0.74707    
+PlayerWeightB2              5.722e-04  8.981e-04   0.637  0.52401    
+PlayerWeightB3              4.564e-04  8.744e-04   0.522  0.60170    
+PlayerWeightB4              1.749e-03  8.646e-04   2.023  0.04309 *  
+PlayerWeightB5              7.866e-04  8.440e-04   0.932  0.35135    
+PlayerWeightB6              1.829e-03  8.403e-04   2.177  0.02948 *  
+PlayerWeightB7              1.166e-03  8.590e-04   1.358  0.17457    
+PlayerWeightB8              1.345e-04  8.863e-04   0.152  0.87940    
+PlayerWeightB9              2.011e-04  8.985e-04   0.224  0.82293    
+PlayerWeightB10            -4.869e-04  9.644e-04  -0.505  0.61361    
+YardLine                    2.315e-02  3.019e-03   7.669 1.80e-14 ***
+Quarter                    -1.060e-02  3.370e-02  -0.314  0.75316    
+Down                        8.224e-04  6.631e-02   0.012  0.99010    
+Distance                    7.028e-02  1.198e-02   5.865 4.55e-09 ***
+OffenseFormationEMPTY       8.262e-01  6.153e+00   0.134  0.89320    
+OffenseFormationI_FORM      1.328e+00  6.020e+00   0.221  0.82535    
+OffenseFormationJUMBO       9.484e-01  6.027e+00   0.157  0.87497    
+OffenseFormationPISTOL      1.666e+00  6.022e+00   0.277  0.78205    
+OffenseFormationSHOTGUN     1.180e+00  6.019e+00   0.196  0.84456    
+OffenseFormationSINGLEBACK  1.308e+00  6.019e+00   0.217  0.82801    
+OffenseFormationUNKNOWN     2.860e-01  6.944e+00   0.041  0.96714    
+OffenseFormationWILDCAT     1.427e+00  6.071e+00   0.235  0.81421    
+RB                          1.569e-01  1.767e-01   0.888  0.37458    
+TE                         -1.585e-01  1.478e-01  -1.072  0.28359    
+WR                         -2.869e-01  1.515e-01  -1.894  0.05820 .  
+DefendersInTheBox          -5.163e-01  5.822e-02  -8.869  < 2e-16 ***
+PlayDirectionright         -6.417e-02  8.419e-02  -0.762  0.44597    
+Week                       -5.783e-03  1.049e-02  -0.551  0.58148    
+GameWeathernone            -2.210e-01  1.302e-01  -1.697  0.08973 .  
+GameWeatherovercast        -7.354e-02  9.384e-02  -0.784  0.43323    
+GameWeatherrain            -1.957e-01  1.911e-01  -1.024  0.30576    
+GameWeathersnow             2.271e-01  5.471e-01   0.415  0.67807    
+Temperature                -4.443e-03  3.052e-03  -1.456  0.14549    
+Humidity                   -2.174e-03  1.926e-03  -1.129  0.25904    
+WindSpeed                  -4.463e-03  9.319e-03  -0.479  0.63202    
+WindDirectionnone          -8.260e-02  2.419e-01  -0.341  0.73278    
+WindDirectionnorth          1.250e-01  2.830e-01   0.442  0.65879    
+WindDirectionnorth east    -1.219e-01  2.435e-01  -0.501  0.61661    
+WindDirectionnorth west    -1.399e-04  2.456e-01  -0.001  0.99955    
+WindDirectionsouth          8.536e-02  2.682e-01   0.318  0.75031    
+WindDirectionsouth east    -1.143e-01  2.544e-01  -0.449  0.65335    
+WindDirectionsouth west    -1.303e-01  2.393e-01  -0.545  0.58608    
+WindDirectionwest          -2.535e-01  2.837e-01  -0.894  0.37150    
+GameHour                    8.570e-03  8.756e-03   0.979  0.32767    
+DL                          1.484e-01  1.107e+00   0.134  0.89338    
+LB                          1.028e-01  1.109e+00   0.093  0.92613    
+BL                          4.034e-01  1.110e+00   0.363  0.71630    
+ScoreDelta                  5.939e-04  3.622e-03   0.164  0.86976    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 5.995 on 24608 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.02293,   Adjusted R-squared:  0.01705 
+F-statistic: 3.902 on 148 and 24608 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Now lets use the step function to find the best model for the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#lm\_model\_step \textless{}{-} step(lm\_model\_full, direction = "both")}
+\CommentTok{\#summary(lm\_model\_step)}
+\end{Highlighting}
+\end{Shaded}
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
+Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
+of the model can be checked.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
+
+Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-7-1.pdf}
+
+}
+
+\end{figure}
 
 \hypertarget{references}{%
 \section*{References}\label{references}}
