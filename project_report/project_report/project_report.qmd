@@ -169,16 +169,60 @@ All analyses will be conducted in R, a statistical computing language that provi
 
 ## Model Development
 
+To commence our analytical journey, we initiate with Multiple Linear Regression (MLR) as our foundational modeling technique. This approach is not just a stepping stone but a critical phase in our analysis, offering valuable insights into the relationships between various features of the game and the yards gained. MLR helps us discern the linear associations and relative importance of different variables, setting the stage for more complex modeling. Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
+
 First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
 ```
 
-Now that the data has been imported, splitting the data into a training set and a testing set can commence. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data. 
+### Multiple Linear Regression Model
 
+The first model that will be synthesized has only an intercept and no predictors.
 ```{r}
+lm_model_null <- lm(Yards ~ 1, data = football_data)
+# summary(lm_model_null)
+```
+
+Then we can run a full model with all of the predictors.
+```{r}
+# Fit the model
+lm_model_full <- lm(Yards ~ ., data = football_data)
+# summary(lm_model_full)
+```
+
+Now lets use the step function to find the best model for the data.
+```{r}
+lm_model_step <- step(lm_model_full, direction = "backward")
+# summary(lm_model_step)
+```
+
+Running this reduced model yields the following results:
+```{r}
+reduced_model <- lm(Yards ~ XA5 + XA10 + XB1 + XB3 + YA1 + YA4 + YA9 + YB0 + YB4 + OrientationA1 + OrientationA4 + OrientationA8 + OrientationB8 + OrientationB9 + OrientationB10 + PlayerHeightA3 + PlayerHeightA8 + PlayerHeightA9 + PlayerHeightA10 + PlayerHeightB8 + PlayerWeightA1 + PlayerWeightA3 + PlayerWeightA6 + PlayerWeightA10 + PlayerWeightB4 + PlayerWeightB6 + YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data)
+summary(reduced_model)
+```
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
+```{r}
+par(mfrow = c(2, 2))
+plot(lm_model_step)
+```
+Based on the plots above, the normality assumption is clearly violated, as the Q-Q Residuals plot shows that the residuals are not normally distributed. Therefore, in order to address the issue and possibly improve on model complexity and performance, we are going to move away from the multiple linear regression model and move towards a random forest model using XGBoost.
+
+### XGBoost Model
+
+Moving now into the XGBoost model, we want to split our data into a training set and a testing set as this is the model we want to check performance metrics on. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data. 
+```{r}
+library(fastDummies)
+
+# Convert specified factor columns to dummy variables
+football_data <- dummy_cols(football_data, 
+                            select_columns = c("WindDirection", "GameWeather", "PlayDirection", "OffenseFormation"), 
+                            remove_selected_columns = TRUE)
+
 # Split the data into a training set and a testing set
 set.seed(123457)
 train.prop <- 0.80
@@ -190,10 +234,9 @@ train.set <- football_data[idx, ]
 test.set <- football_data[-idx, ]
 ```
 
- The average of yards in both the trainign and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
+ The average of yards in both the training and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
 
  The average of yards in both the trainign and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
-
 ```{r}
 # Check that the average of yards is about the same in both the training and testing sets
 (ave_train <- mean(train.set$Yards))
@@ -203,34 +246,77 @@ test.set <- football_data[-idx, ]
 
 Based on the results above, the average of yards is about the same in both the training and testing sets. In addition, both of those are similar to that of the original dataset. 
 
-Now that the data has been split into a training set and a testing set, development of the model can begin.
-
-The first model that will be synthesized has only an intercept and no predictors.
-
+Now that the data has been split into a training set and a testing set, development of the XGBoost model can begin.
 ```{r}
-lm_model_null <- lm(Yards ~ 1, data = train.set)
-summary(lm_model_null)
+# Load the xgboost package
+library(xgboost)
+
+# Prepare the data for XGBoost
+# Convert data to matrix format as xgboost works with the matrix
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+
+# Create DMatrices
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+
+# Set XGBoost parameters
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",  # Objective function for regression
+    eta = 0.1,                      # Learning rate
+    max_depth = 6,                  # Depth of trees
+    subsample = 0.5,                # Subsampling of the training data
+    colsample_bytree = 0.5          # Subsampling of features
+)
+
+# Number of boosting rounds
+nrounds <- 100
+
+# Train the model
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+
+# Predicting
+xgb_predictions <- predict(xgb_model, dtest)
+
+# Evaluate the model
+# For example, using Root Mean Squared Error (RMSE)
+true_values <- test.set$Yards
+rmse <- sqrt(mean((true_values - xgb_predictions)^2))
+print(paste("RMSE:", rmse))
 ```
 
 ```{r}
-# Fit the model
-lm_model_full <- lm(Yards ~ ., data = train.set)
-summary(lm_model_full)
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
 ```
-
-Now lets use the step function to find the best model for the data.
 
 ```{r}
-#lm_model_step <- step(lm_model_full, direction = "backward")
-#summary(lm_model_step)
+# Variable importance plot
+importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = xgb_model)
+xgb.plot.importance(importance_matrix)
 ```
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
 
 ```{r}
-par(mfrow = c(2, 2))
-plot(lm_model_full)
+# Mean Absolute Error
+mae <- mean(abs(true_values - xgb_predictions))
+print(paste("MAE:", mae))
 ```
+
+```{r}
+# Residuals plot
+residuals <- true_values - xgb_predictions
+plot(residuals, type = "l", main = "Residuals Plot", xlab = "Index", ylab = "Residual")
+abline(h = 0, col = "red")
+```
+
+
+
+
+
+
+
 
 
 
