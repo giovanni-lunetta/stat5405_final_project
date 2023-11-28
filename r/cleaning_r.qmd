@@ -1,7 +1,7 @@
 
 Our first step in this project is to clean the data in order to make it usable for our analysis. Lets load in the data and take a look at the structure.
 ```{r}
-df <- read.csv('/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/nfl-big-data-bowl-2020/train.csv', stringsAsFactors = FALSE)
+df <- read.csv('/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train.csv', stringsAsFactors = FALSE)
 str(df)
 ```
 
@@ -176,7 +176,15 @@ df <- df %>%
     OffenseFormation = ifelse(is.na(OffenseFormation), 'UNKNOWN', OffenseFormation)
   )
 
-df$FieldPosition <- ifelse(df$YardLine == 50, df$PossessionTeam, df$FieldPosition)
+# df$FieldPosition <- ifelse(df$YardLine == 50, df$PossessionTeam, df$FieldPosition)
+```
+
+Next we will create a variable called 'YardsFromOwnGoal' which will be the distance from the offense's own goal line:
+```{r}
+# Assuming df is your data frame
+df$YardsFromOwnGoal <- ifelse(df$FieldPosition == df$PossessionTeam, 
+                              df$YardLine, 
+                              100 - df$YardLine)
 ```
 
 Next, the GameWeather column is a bit messy, and has multiple different values, even though there are only 4 weather types that really matter
@@ -336,7 +344,7 @@ one <- c('PlayId', 'Season', 'YardLine', 'Quarter', 'PossessionTeam', 'Down', 'D
          'OffensePersonnel', 'DefendersInTheBox', 'PlayDirection', 'Yards', 'HomeTeamAbbr',
          'VisitorTeamAbbr', 'Week', 'Stadium', 'Location', 'StadiumType', 'Turf',
          'GameWeather', 'Temperature', 'Humidity', 'WindSpeed', 'WindDirection',
-         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL')
+         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL', 'YardsFromOwnGoal')
 
 two <- c('Team')
 
@@ -408,7 +416,7 @@ one <- c('Season', 'YardLine', 'Quarter', 'PossessionTeam', 'Down', 'Distance',
          'OffensePersonnel', 'DefendersInTheBox', 'PlayDirection', 'Yards', 'HomeTeamAbbr',
          'VisitorTeamAbbr', 'Week', 'Stadium', 'Location', 'StadiumType', 'Turf',
          'GameWeather', 'Temperature', 'Humidity', 'WindSpeed', 'WindDirection',
-         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL')
+         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL', 'YardsFromOwnGoal')
 
 # Check if all columns in 'one' exist in 'df'
 all(one %in% names(df))
@@ -440,5 +448,5 @@ names(train_merged)
 
 ```{r}
 # Assuming 'df' is your dataframe
-# write.csv(train_merged, file = "cleaned_train_r.csv", row.names = FALSE)
+write.csv(train_merged, file = "cleaned_train_r.csv", row.names = FALSE)
 ```

@@ -175,7 +175,9 @@ First, lets start by importing the completely clean and ready to use dataset. Th
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
+
+str(football_data)
 ```
 
 The first model that will be synthesized has only an intercept and no predictors.
@@ -195,14 +197,14 @@ lm_model_full <- lm(Yards ~ ., data = football_data)
 Now lets use the step function to find the best model for the data.
 
 ```{r}
-#lm_model_step <- step(lm_model_full, direction = "backward")
-# summary(lm_model_step)
+lm_model_step <- step(lm_model_full, direction = "backward")
+summary(lm_model_step)
 ```
 
 Running this reduced model yields the following results:
 
 ```{r}
-reduced_model <- lm(Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data)
+reduced_model <- lm(Yards ~ Distance + RB + WR + DefendersInTheBox + Temperature + GameHour + DL + LB, data=football_data)
 summary(reduced_model)
 ```
 
@@ -262,7 +264,7 @@ library(fastDummies)
 
 # Convert specified factor columns to dummy variables
 football_data <- dummy_cols(football_data, 
-                            select_columns = c("WindDirection", "GameWeather", "PlayDirection", "OffenseFormation"), 
+                            select_columns = c("WindDirection", "GameWeather", "OffenseFormation"), 
                             remove_selected_columns = TRUE)
 
 # Split the data into a training set and a testing set

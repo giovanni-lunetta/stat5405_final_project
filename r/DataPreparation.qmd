@@ -10,16 +10,19 @@ library(tidyverse)
 library(caret)
 
 train <- read_csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/cleaned_train_r.csv")
-names(train)
+str(train, list.len=ncol(train))
+
+#rename "Yards" column to "TotalYards"
+train <- train %>% rename(TotalYards = Yards)
 ```
 
 Lets start by reducing the dimensionality of this dataset. We will remove varibales that are not observable prior to the snap of the ball. These variables include the speed of each player (SA0 to SB10), the acceleration of each player (AA0-AB10), the direction the player is running in (DirA0-DirB10), the jersey number of each player (JerseyNumberA0-JerseyNumberB10), and the time between snap and the handoff (TimeDelta). Then lets obtain the entire structure of the dataset.
 
 ```{r}
 train$ScoreDelta <- train$HomeScoreBeforePlay - train$VisitorScoreBeforePlay
-train <- train %>% select(-starts_with("SA"), -starts_with("SB"), -starts_with("AA"), -starts_with("AB"), -starts_with("DirA"), -starts_with("DirB"), -starts_with("DisA"), -starts_with("DisB"), -starts_with("JerseyNumber"), -TimeDelta, -starts_with("HomeScoreBeforePlay"), -starts_with("VisitorScoreBeforePlay"), -ends_with("TeamAbbr"), -starts_with("PlayerCollege"), -starts_with("Position"), -starts_with("Birth"), -starts_with("Location"), -starts_with("PlayID"), -starts_with("Season"), -starts_with("Display"), -starts_with("Stadium"), -starts_with("Possession"), -starts_with("FieldPosition"), -starts_with("Turf"))
+train <- train %>% select(-starts_with("SA"), -starts_with("SB"), -starts_with("AA"), -starts_with("AB"), -starts_with("DirA"), -starts_with("DirB"), -starts_with("DisA"), -starts_with("DisB"), -starts_with("JerseyNumber"), -TimeDelta, -starts_with("HomeScoreBeforePlay"), -starts_with("VisitorScoreBeforePlay"), -ends_with("TeamAbbr"), -starts_with("PlayerCollege"), -starts_with("Position"), -starts_with("Birth"), -starts_with("Location"), -starts_with("PlayID"), -starts_with("Season"), -starts_with("Display"), -starts_with("Stadium"), -starts_with("Possession"), -starts_with("FieldPosition"), -starts_with("Turf"), -starts_with("X"), -starts_with("YA"), -starts_with("YB"), -starts_with("Orientation"), -starts_with("Player"), -starts_with("YardLine"), -starts_with("PlayDirection"))
 
-train <- train %>% mutate(OffenseFormation = as.factor(OffenseFormation),  PlayDirection = as.factor(PlayDirection), GameWeather = as.factor(GameWeather), WindDirection = as.factor(WindDirection), Down = as.factor(Down), Quarter = as.factor(Quarter), Distance = as.factor(Distance), Week = as.factor(Week), DL = as.factor(DL), LB = as.factor(LB), BL = as.factor(BL), GameHour = as.factor(GameHour))
+train <- train %>% mutate(OffenseFormation = as.factor(OffenseFormation), GameWeather = as.factor(GameWeather), WindDirection = as.factor(WindDirection), Down = as.factor(Down), Quarter = as.factor(Quarter), Distance = as.factor(Distance), Week = as.factor(Week), DL = as.factor(DL), LB = as.factor(LB), BL = as.factor(BL), GameHour = as.factor(GameHour))
 
 train$OffensePersonnel <- ifelse(grepl("OL", train$OffensePersonnel), train$OffensePersonnel, paste0("0 OL, ", train$OffensePersonnel))
 
@@ -43,11 +46,12 @@ train <- train[sample(nrow(train)),]
 
 ```{r}
 #print the first 5 rows of the dataset and show all 227 columns
+train <- train %>% rename(Yards = TotalYards)
 str(train, list.len=ncol(train))
 ```
 
 Now lets save this new fully cleaned and ready to use dataset.
 
 ```{r}
-write_csv(train, "/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
+write_csv(train, "/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/train_ready.csv")
 ```
