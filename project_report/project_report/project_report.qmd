@@ -278,6 +278,76 @@ xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
 
 # Predicting
 xgb_predictions <- predict(xgb_model, dtest)
+```
+
+A scatter plot of the actual versus predicted values can provide a clear visual indication of how well the model is performing:
+```{r}
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+As we can see, the model is performing well, but fails to predict carries over 20 yards. This is likely due to the fact that there are very few carries over 20 yards in the dataset. We can check the summary statistics of yards to confirm this.
+```{r}
+summary(football_data$Yards)
+```
+
+75% of the carries 6 yards or less, while 50% of the carries are 3 yards or less. This is likely the reason why the model is failing to predict carries over 20 yards.
+
+Our goal is to determine what plays a team should run on, therefore, because over 75% of our data consists of carries 6 yards or less and our model fails to predict a run of over 20 yards, we will remove all carries over 20 yards from the dataset. This will help to ensure that the model is predicting the majority of the carries in the dataset.
+
+```{r}
+# Remove all carries over 20 yards
+football_data <- football_data[football_data$Yards <= 20, ]
+```
+
+Now that the data has been cleaned, we can re-run the XGBoost model:
+```{r}
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
+
+# Check that the average of yards is about the same in both the training and testing sets
+(ave_train <- mean(train.set$Yards))
+(ave_test <- mean(test.set$Yards))
+(ave_all <- mean(football_data$Yards))
+
+# Load the xgboost package
+library(xgboost)
+
+# Prepare the data for XGBoost
+# Convert data to matrix format as xgboost works with the matrix
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+
+# Create DMatrices
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+
+# Set XGBoost parameters
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",  # Objective function for regression
+    eta = 0.1,                      # Learning rate
+    max_depth = 6,                  # Depth of trees
+    subsample = 0.5,                # Subsampling of the training data
+    colsample_bytree = 0.5          # Subsampling of features
+)
+
+# Number of boosting rounds
+nrounds <- 100
+
+# Train the model
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+
+# Predicting
+xgb_predictions <- predict(xgb_model, dtest)
 
 # Evaluate the model
 # For example, using Root Mean Squared Error (RMSE)
@@ -286,12 +356,12 @@ rmse <- sqrt(mean((true_values - xgb_predictions)^2))
 print(paste("RMSE:", rmse))
 ```
 
+Before commenting on the results, lets take a look at some plots to get a better understanding of the model's performance.
 ```{r}
 # Scatter plot of actual vs. predicted values
 plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
 abline(0, 1, col = "red")  # Adds a 45-degree line
 ```
-
 ```{r}
 # Variable importance plot
 importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = xgb_model)
