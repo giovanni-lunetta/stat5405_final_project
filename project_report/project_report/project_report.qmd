@@ -165,20 +165,18 @@ The final step will be to interpret the models in the context of NFL games. This
 
 All analyses will be conducted in R, a statistical computing language that provides a wide array of packages for machine learning and data analysis. For MLR and GLM, we will utilize the `stats` package that comes with the R base installation. For our XGBoost model, we will use the `xgboost` package, which is specifically designed for speed and performance. Data manipulation and cleansing will be managed with packages like `dplyr` and `tidyr`, while `ggplot2` will be employed for data visualization to facilitate understanding and interpretation of the data and model outputs. For feature engineering and preprocessing, we will take advantage of `caret` or `recipes`. Hyperparameter tuning can be optimized using the `tune` package, and for cross-validation, the `rsample` package will be employed. The `broom` and `modelr` packages will be useful for tidying model outputs and working with models in a pipeline, respectively. This suite of packages will enable a comprehensive workflow within R for developing, evaluating, and interpreting the predictive models.
 
-# Multiple Linear Regression Model
-
 ## Model Development
 
-To commence our analytical journey, we initiate with Multiple Linear Regression (MLR) as our foundational modeling technique. This approach is not just a stepping stone but a critical phase in our analysis, offering valuable insights into the relationships between various features of the game and the yards gained. MLR helps us discern the linear associations and relative importance of different variables, setting the stage for more complex modeling. Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
+To commence our analytical journey, we initiate with Multiple Linear Regression (MLR) as our foundational modeling technique. This approach is not just a stepping stone, but a critical phase in our analysis, offering valuable insights into the relationships between various features of the game and the yards gained. MLR helps discern the linear associations and relative importance of different variables, setting the stage for more complex modeling. Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
+
+# Multiple Linear Regression Model
 
 First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
 ```
-
-### Multiple Linear Regression Model
 
 The first model that will be synthesized has only an intercept and no predictors.
 ```{r}
@@ -186,7 +184,8 @@ lm_model_null <- lm(Yards ~ 1, data = football_data)
 # summary(lm_model_null)
 ```
 
-Then we can run a full model with all of the predictors.
+Now the full model using all of the predictors will be created. In this full model, there will be 0 interactions between the predictors.
+
 ```{r}
 # Fit the model
 lm_model_full <- lm(Yards ~ ., data = football_data)
@@ -194,12 +193,14 @@ lm_model_full <- lm(Yards ~ ., data = football_data)
 ```
 
 Now lets use the step function to find the best model for the data.
+
 ```{r}
-lm_model_step <- step(lm_model_full, direction = "backward")
+#lm_model_step <- step(lm_model_full, direction = "backward")
 # summary(lm_model_step)
 ```
 
 Running this reduced model yields the following results:
+
 ```{r}
 reduced_model <- lm(Yards ~ XA5 + XA10 + XB1 + XB3 + YA1 + YA4 + YA9 + YB0 + YB4 + OrientationA1 + OrientationA4 + OrientationA8 + OrientationB8 + OrientationB9 + OrientationB10 + PlayerHeightA3 + PlayerHeightA8 + PlayerHeightA9 + PlayerHeightA10 + PlayerHeightB8 + PlayerWeightA1 + PlayerWeightA3 + PlayerWeightA6 + PlayerWeightA10 + PlayerWeightB4 + PlayerWeightB6 + YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data)
 summary(reduced_model)
@@ -208,13 +209,16 @@ summary(reduced_model)
 By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
 ```{r}
 par(mfrow = c(2, 2))
-plot(lm_model_step)
+old.par = par(mar = c(3, 4, 1, 2))
+plot(reduced_model)
 ```
-Based on the plots above, the normality assumption is clearly violated, as the Q-Q Residuals plot shows that the residuals are not normally distributed. Therefore, in order to address the issue and possibly improve on model complexity and performance, we are going to move away from the multiple linear regression model and move towards a random forest model using XGBoost.
+
+Based on the plots above, the normality assumption is clearly violated, as the Q-Q Residuals plot shows that the residuals are not normally distributed. This is due to the highly right skewed nature of the response varible and the nature of NFL games. To be more specific, the majority of the carries in NFL games are small gains, while there are few "breakout" plays resulting in large gains. Therefore, it is difficult to predict large gains from a linear model. In addition, different techniques to attempt to normalize the residuals were attempted (such as the log transformation, the squareroot transformation, the inverse trasnformation, box-cox transformation, and cube root transformation), but none of the transformations were able to normalize the residuals. In order to address the issue and possibly improve on model complexity and performance, we are going to move away from the multiple linear regression model and move towards a random forest model using XGBoost.
 
 ### XGBoost Model
 
-Moving now into the XGBoost model, we want to split our data into a training set and a testing set as this is the model we want to check performance metrics on. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data. 
+Moving now into the XGBoost model, the data was split into a training set and a testing set in order to evaluate performance metrics. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data and randomly selected.
+
 ```{r}
 library(fastDummies)
 
@@ -236,7 +240,6 @@ test.set <- football_data[-idx, ]
 
  The average of yards in both the training and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
 
- The average of yards in both the trainign and testing sets are computed to ensure they are about the same. In addition, both of those should be similar to that of the original dataset. This process will help to ensure that the training and testing sets are representative of the entire dataset. 
 ```{r}
 # Check that the average of yards is about the same in both the training and testing sets
 (ave_train <- mean(train.set$Yards))
@@ -244,9 +247,10 @@ test.set <- football_data[-idx, ]
 (ave_all <- mean(football_data$Yards))
 ```
 
-Based on the results above, the average of yards is about the same in both the training and testing sets. In addition, both of those are similar to that of the original dataset. 
+Based on the results above, the average yards is about the same in both the training and testing sets. In addition, both of those are similar to that of the original dataset. 
 
 Now that the data has been split into a training set and a testing set, development of the XGBoost model can begin.
+
 ```{r}
 # Load the xgboost package
 library(xgboost)
@@ -278,6 +282,8 @@ xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
 
 # Predicting
 xgb_predictions <- predict(xgb_model, dtest)
+
+true_values <- test.set$Yards
 ```
 
 A scatter plot of the actual versus predicted values can provide a clear visual indication of how well the model is performing:

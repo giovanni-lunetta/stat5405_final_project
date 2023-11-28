@@ -246,7 +246,7 @@ predominantly pass-oriented league.
     Sports Analytics
 \end{keyword}
 \end{frontmatter}
-    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, enhanced, borderline west={3pt}{0pt}{shadecolor}, boxrule=0pt, sharp corners, interior hidden, breakable]}{\end{tcolorbox}}\fi
+    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[borderline west={3pt}{0pt}{shadecolor}, interior hidden, boxrule=0pt, breakable, enhanced, frame hidden, sharp corners]}{\end{tcolorbox}}\fi
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -606,12 +606,29 @@ working with models in a pipeline, respectively. This suite of packages
 will enable a comprehensive workflow within R for developing,
 evaluating, and interpreting the predictive models.
 
+\hypertarget{model-development}{%
+\subsection{Model Development}\label{model-development}}
+
+To commence our analytical journey, we initiate with Multiple Linear
+Regression (MLR) as our foundational modeling technique. This approach
+is not just a stepping stone, but a critical phase in our analysis,
+offering valuable insights into the relationships between various
+features of the game and the yards gained. MLR helps discern the linear
+associations and relative importance of different variables, setting the
+stage for more complex modeling. Subsequent to this exploratory
+analysis, we transition to XGBoost, an advanced machine learning
+technique renowned for its predictive power and efficiency. XGBoost, a
+gradient boosting framework, is chosen for its ability to handle the
+dataset's complexity, non-linear relationships, and interactions among
+variables more adeptly. This shift from MLR to XGBoost embodies our
+methodological progression, from understanding the foundational
+relationships in our data to harnessing advanced computational
+techniques for more accurate and robust predictions in the dynamic and
+unpredictable context of NFL games.
+
 \hypertarget{multiple-linear-regression-model}{%
 \section{Multiple Linear Regression
 Model}\label{multiple-linear-regression-model}}
-
-\hypertarget{model-development}{%
-\subsection{Model Development}\label{model-development}}
 
 First, lets start by importing the completely clean and ready to use
 dataset. This dataset was the result of procedures outlined in the data
@@ -624,14 +641,174 @@ cleaning and preprocessing section.
 \end{Highlighting}
 \end{Shaded}
 
-Now that the data has been imported, splitting the data into a training
-set and a testing set can commence. The training set will be used to
-train the model, while the testing set will be used to test the model.
-The training set will be 80\% of the data, while the testing set will be
-20\% of the data.
+The first model that will be synthesized has only an intercept and no
+predictors.
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\CommentTok{\# summary(lm\_model\_null)}
+\end{Highlighting}
+\end{Shaded}
+
+Now the full model using all of the predictors will be created. In this
+full model, there will be 0 interactions between the predictors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
+\CommentTok{\# summary(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+Now lets use the step function to find the best model for the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#lm\_model\_step \textless{}{-} step(lm\_model\_full, direction = "backward")}
+\CommentTok{\# summary(lm\_model\_step)}
+\end{Highlighting}
+\end{Shaded}
+
+Running this reduced model yields the following results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ XA5 }\SpecialCharTok{+}\NormalTok{ XA10 }\SpecialCharTok{+}\NormalTok{ XB1 }\SpecialCharTok{+}\NormalTok{ XB3 }\SpecialCharTok{+}\NormalTok{ YA1 }\SpecialCharTok{+}\NormalTok{ YA4 }\SpecialCharTok{+}\NormalTok{ YA9 }\SpecialCharTok{+}\NormalTok{ YB0 }\SpecialCharTok{+}\NormalTok{ YB4 }\SpecialCharTok{+}\NormalTok{ OrientationA1 }\SpecialCharTok{+}\NormalTok{ OrientationA4 }\SpecialCharTok{+}\NormalTok{ OrientationA8 }\SpecialCharTok{+}\NormalTok{ OrientationB8 }\SpecialCharTok{+}\NormalTok{ OrientationB9 }\SpecialCharTok{+}\NormalTok{ OrientationB10 }\SpecialCharTok{+}\NormalTok{ PlayerHeightA3 }\SpecialCharTok{+}\NormalTok{ PlayerHeightA8 }\SpecialCharTok{+}\NormalTok{ PlayerHeightA9 }\SpecialCharTok{+}\NormalTok{ PlayerHeightA10 }\SpecialCharTok{+}\NormalTok{ PlayerHeightB8 }\SpecialCharTok{+}\NormalTok{ PlayerWeightA1 }\SpecialCharTok{+}\NormalTok{ PlayerWeightA3 }\SpecialCharTok{+}\NormalTok{ PlayerWeightA6 }\SpecialCharTok{+}\NormalTok{ PlayerWeightA10 }\SpecialCharTok{+}\NormalTok{ PlayerWeightB4 }\SpecialCharTok{+}\NormalTok{ PlayerWeightB6 }\SpecialCharTok{+}\NormalTok{ YardLine }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data)}
+\FunctionTok{summary}\NormalTok{(reduced\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = Yards ~ XA5 + XA10 + XB1 + XB3 + YA1 + YA4 + YA9 + 
+    YB0 + YB4 + OrientationA1 + OrientationA4 + OrientationA8 + 
+    OrientationB8 + OrientationB9 + OrientationB10 + PlayerHeightA3 + 
+    PlayerHeightA8 + PlayerHeightA9 + PlayerHeightA10 + PlayerHeightB8 + 
+    PlayerWeightA1 + PlayerWeightA3 + PlayerWeightA6 + PlayerWeightA10 + 
+    PlayerWeightB4 + PlayerWeightB6 + YardLine + Distance + RB + 
+    WR + DefendersInTheBox + BL, data = football_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-20.721  -3.181  -1.183   1.332  95.635 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        5.049e+00  9.334e-01   5.410 6.37e-08 ***
+XA5                1.143e-02  6.557e-03   1.744  0.08120 .  
+XA10              -9.971e-03  6.542e-03  -1.524  0.12747    
+XB1               -2.254e-02  6.864e-03  -3.284  0.00102 ** 
+XB3                2.068e-02  6.847e-03   3.020  0.00253 ** 
+YA1               -6.291e-03  5.288e-03  -1.190  0.23418    
+YA4               -4.564e-03  5.187e-03  -0.880  0.37896    
+YA9               -8.927e-03  4.743e-03  -1.882  0.05982 .  
+YB0               -6.662e-03  5.229e-03  -1.274  0.20261    
+YB4                4.667e-03  5.167e-03   0.903  0.36641    
+OrientationA1      3.262e-04  4.004e-04   0.815  0.41521    
+OrientationA4     -4.525e-04  4.077e-04  -1.110  0.26710    
+OrientationA8      8.295e-04  4.104e-04   2.021  0.04328 *  
+OrientationB8     -9.504e-04  4.095e-04  -2.321  0.02030 *  
+OrientationB9     -4.311e-05  4.083e-04  -0.106  0.91592    
+OrientationB10     5.730e-04  4.090e-04   1.401  0.16116    
+PlayerHeightA3    -3.510e-02  2.563e-02  -1.370  0.17083    
+PlayerHeightA8     4.778e-02  2.614e-02   1.828  0.06762 .  
+PlayerHeightA9     4.785e-02  2.447e-02   1.956  0.05050 .  
+PlayerHeightA10    7.012e-02  2.386e-02   2.939  0.00330 ** 
+PlayerHeightB8    -2.315e-02  2.618e-02  -0.884  0.37654    
+PlayerWeightA1    -1.087e-03  7.658e-04  -1.420  0.15574    
+PlayerWeightA3    -7.112e-04  7.650e-04  -0.930  0.35253    
+PlayerWeightA6    -1.307e-03  7.705e-04  -1.696  0.08995 .  
+PlayerWeightA10    2.079e-03  8.056e-04   2.580  0.00988 ** 
+PlayerWeightB4     1.666e-03  7.470e-04   2.230  0.02573 *  
+PlayerWeightB6     5.330e-04  7.643e-04   0.697  0.48554    
+YardLine           2.424e-02  2.822e-03   8.590  < 2e-16 ***
+Distance           7.621e-02  9.852e-03   7.735 1.06e-14 ***
+RB                 2.969e-01  9.877e-02   3.006  0.00265 ** 
+WR                -1.170e-01  7.275e-02  -1.609  0.10769    
+DefendersInTheBox -5.293e-01  5.336e-02  -9.919  < 2e-16 ***
+BL                 2.570e-01  8.403e-02   3.058  0.00223 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 6.395 on 30973 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.01815,   Adjusted R-squared:  0.01714 
+F-statistic: 17.89 on 32 and 30973 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
+Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
+of the model can be checked.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(reduced\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-6-1.pdf}
+
+}
+
+\end{figure}
+
+Based on the plots above, the normality assumption is clearly violated,
+as the Q-Q Residuals plot shows that the residuals are not normally
+distributed. This is due to the highly right skewed nature of the
+response varible and the nature of NFL games. To be more specific, the
+majority of the carries in NFL games are small gains, while there are
+few ``breakout'' plays resulting in large gains. Therefore, it is
+difficult to predict large gains from a linear model. In addition,
+different techniques to attempt to normalize the residuals were
+attempted (such as the log transformation, the squareroot
+transformation, the inverse trasnformation, box-cox transformation, and
+cube root transformation), but none of the transformations were able to
+normalize the residuals. In order to address the issue and possibly
+improve on model complexity and performance, we are going to move away
+from the multiple linear regression model and move towards a random
+forest model using XGBoost.
+
+\hypertarget{xgboost-model}{%
+\subsubsection{XGBoost Model}\label{xgboost-model}}
+
+Moving now into the XGBoost model, the data was split into a training
+set and a testing set in order to evaluate performance metrics. The
+training set will be used to train the model, while the testing set will
+be used to test the model. The training set will be 80\% of the data,
+while the testing set will be 20\% of the data and randomly selected.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fastDummies)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Thank you for using fastDummies!
+\end{verbatim}
+
+\begin{verbatim}
+To acknowledge our work, please cite the package:
+\end{verbatim}
+
+\begin{verbatim}
+Kaplan, J. & Schlegel, B. (2023). fastDummies: Fast Creation of Dummy (Binary) Columns and Rows from Categorical Variables. Version 1.7.1. URL: https://github.com/jacobkap/fastDummies, https://jacobkap.github.io/fastDummies/.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Convert specified factor columns to dummy variables}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{dummy\_cols}\NormalTok{(football\_data, }
+                            \AttributeTok{select\_columns =} \FunctionTok{c}\NormalTok{(}\StringTok{"WindDirection"}\NormalTok{, }\StringTok{"GameWeather"}\NormalTok{, }\StringTok{"PlayDirection"}\NormalTok{, }\StringTok{"OffenseFormation"}\NormalTok{), }
+                            \AttributeTok{remove\_selected\_columns =} \ConstantTok{TRUE}\NormalTok{)}
+
 \CommentTok{\# Split the data into a training set and a testing set}
 \FunctionTok{set.seed}\NormalTok{(}\DecValTok{123457}\NormalTok{)}
 \NormalTok{train.prop }\OtherTok{\textless{}{-}} \FloatTok{0.80}
@@ -644,13 +821,7 @@ The training set will be 80\% of the data, while the testing set will be
 \end{Highlighting}
 \end{Shaded}
 
-The average of yards in both the trainign and testing sets are computed
-to ensure they are about the same. In addition, both of those should be
-similar to that of the original dataset. This process will help to
-ensure that the training and testing sets are representative of the
-entire dataset.
-
-The average of yards in both the trainign and testing sets are computed
+The average of yards in both the training and testing sets are computed
 to ensure they are about the same. In addition, both of those should be
 similar to that of the original dataset. This process will help to
 ensure that the training and testing sets are representative of the
@@ -687,247 +858,249 @@ entire dataset.
 [1] 4.227626
 \end{verbatim}
 
-Based on the results above, the average of yards is about the same in
-both the training and testing sets. In addition, both of those are
-similar to that of the original dataset.
+Based on the results above, the average yards is about the same in both
+the training and testing sets. In addition, both of those are similar to
+that of the original dataset.
 
 Now that the data has been split into a training set and a testing set,
-development of the model can begin.
-
-The first model that will be synthesized has only an intercept and no
-predictors.
+development of the XGBoost model can begin.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ train.set)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_null)}
+\CommentTok{\# Load the xgboost package}
+\FunctionTok{library}\NormalTok{(xgboost)}
+
+\CommentTok{\# Prepare the data for XGBoost}
+\CommentTok{\# Convert data to matrix format as xgboost works with the matrix}
+\NormalTok{train\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(train.set[, }\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(train.set) }\SpecialCharTok{==} \StringTok{"Yards"}\NormalTok{)])}
+\NormalTok{test\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(test.set[, }\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(test.set) }\SpecialCharTok{==} \StringTok{"Yards"}\NormalTok{)])}
+
+\CommentTok{\# Create DMatrices}
+\NormalTok{dtrain }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ train\_matrix, }\AttributeTok{label =}\NormalTok{ train.set}\SpecialCharTok{$}\NormalTok{Yards)}
+\NormalTok{dtest }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ test\_matrix, }\AttributeTok{label =}\NormalTok{ test.set}\SpecialCharTok{$}\NormalTok{Yards)}
+
+\CommentTok{\# Set XGBoost parameters}
+\NormalTok{params }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{booster =} \StringTok{"gbtree"}\NormalTok{,}
+    \AttributeTok{objective =} \StringTok{"reg:squarederror"}\NormalTok{,  }\CommentTok{\# Objective function for regression}
+    \AttributeTok{eta =} \FloatTok{0.1}\NormalTok{,                      }\CommentTok{\# Learning rate}
+    \AttributeTok{max\_depth =} \DecValTok{6}\NormalTok{,                  }\CommentTok{\# Depth of trees}
+    \AttributeTok{subsample =} \FloatTok{0.5}\NormalTok{,                }\CommentTok{\# Subsampling of the training data}
+    \AttributeTok{colsample\_bytree =} \FloatTok{0.5}          \CommentTok{\# Subsampling of features}
+\NormalTok{)}
+
+\CommentTok{\# Number of boosting rounds}
+\NormalTok{nrounds }\OtherTok{\textless{}{-}} \DecValTok{100}
+
+\CommentTok{\# Train the model}
+\NormalTok{xgb\_model }\OtherTok{\textless{}{-}} \FunctionTok{xgb.train}\NormalTok{(}\AttributeTok{params =}\NormalTok{ params, }\AttributeTok{data =}\NormalTok{ dtrain, }\AttributeTok{nrounds =}\NormalTok{ nrounds)}
+
+\CommentTok{\# Predicting}
+\NormalTok{xgb\_predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(xgb\_model, dtest)}
+
+\NormalTok{true\_values }\OtherTok{\textless{}{-}}\NormalTok{ test.set}\SpecialCharTok{$}\NormalTok{Yards}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{verbatim}
-
-Call:
-lm(formula = Yards ~ 1, data = train.set)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--16.151  -3.151  -1.151   1.849  85.849 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  4.15126    0.03843     108   <2e-16 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 6.047 on 24757 degrees of freedom
-\end{verbatim}
+A scatter plot of the actual versus predicted values can provide a clear
+visual indication of how well the model is performing:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# Fit the model}
-\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ train.set)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
+\CommentTok{\# Scatter plot of actual vs. predicted values}
+\FunctionTok{plot}\NormalTok{(true\_values, xgb\_predictions, }\AttributeTok{main =} \StringTok{"Actual vs Predicted Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Actual Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
 \end{Highlighting}
 \end{Shaded}
-
-\begin{verbatim}
-
-Call:
-lm(formula = Yards ~ ., data = train.set)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--17.608  -3.115  -1.115   1.415  87.578 
-
-Coefficients:
-                             Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                 3.208e+00  1.365e+01   0.235  0.81415    
-XA0                         2.115e-03  1.026e-02   0.206  0.83665    
-XA1                         6.044e-04  9.994e-03   0.060  0.95178    
-XA2                         1.416e-03  1.013e-02   0.140  0.88882    
-XA3                         1.334e-03  1.010e-02   0.132  0.89488    
-XA4                        -1.413e-03  1.005e-02  -0.141  0.88810    
-XA5                         2.272e-02  1.018e-02   2.231  0.02568 *  
-XA6                         3.460e-03  1.029e-02   0.336  0.73667    
-XA7                         5.608e-03  1.030e-02   0.545  0.58599    
-XA8                        -8.735e-03  9.910e-03  -0.881  0.37812    
-XA9                        -9.963e-03  1.009e-02  -0.988  0.32324    
-XA10                       -1.672e-02  9.481e-03  -1.763  0.07788 .  
-XB0                        -4.288e-03  1.025e-02  -0.418  0.67563    
-XB1                        -1.614e-02  1.000e-02  -1.613  0.10667    
-XB2                         5.075e-03  1.023e-02   0.496  0.61974    
-XB3                         1.889e-02  1.011e-02   1.869  0.06169 .  
-XB4                        -8.184e-03  1.004e-02  -0.815  0.41501    
-XB5                        -6.650e-03  1.026e-02  -0.648  0.51674    
-XB6                         2.272e-03  1.031e-02   0.220  0.82565    
-XB7                        -9.978e-03  1.029e-02  -0.969  0.33234    
-XB8                        -8.868e-04  9.904e-03  -0.090  0.92865    
-XB9                         7.402e-03  1.009e-02   0.733  0.46337    
-XB10                        1.180e-02  9.417e-03   1.253  0.21007    
-YA0                         1.894e-03  5.676e-03   0.334  0.73858    
-YA1                        -1.166e-02  5.695e-03  -2.048  0.04055 *  
-YA2                         3.674e-03  5.565e-03   0.660  0.50907    
-YA3                        -3.573e-03  5.465e-03  -0.654  0.51328    
-YA4                        -8.558e-03  5.501e-03  -1.556  0.11977    
-YA5                        -4.311e-04  5.535e-03  -0.078  0.93793    
-YA6                        -1.715e-03  5.437e-03  -0.316  0.75237    
-YA7                         7.581e-03  5.409e-03   1.402  0.16102    
-YA8                        -4.045e-03  5.248e-03  -0.771  0.44082    
-YA9                        -1.165e-02  5.047e-03  -2.309  0.02096 *  
-YA10                        6.684e-03  5.213e-03   1.282  0.19978    
-YB0                        -1.244e-02  5.702e-03  -2.182  0.02910 *  
-YB1                         4.802e-03  5.682e-03   0.845  0.39807    
-YB2                         1.628e-03  5.567e-03   0.292  0.76993    
-YB3                        -1.490e-03  5.425e-03  -0.275  0.78365    
-YB4                         7.618e-03  5.518e-03   1.381  0.16742    
-YB5                         3.068e-03  5.541e-03   0.554  0.57980    
-YB6                         4.511e-03  5.448e-03   0.828  0.40763    
-YB7                        -2.300e-03  5.406e-03  -0.426  0.67046    
-YB8                         5.315e-03  5.255e-03   1.011  0.31184    
-YB9                         3.448e-03  5.058e-03   0.682  0.49545    
-YB10                        4.123e-03  5.221e-03   0.790  0.42980    
-OrientationA0              -1.035e-04  4.525e-04  -0.229  0.81908    
-OrientationA1               7.511e-04  4.474e-04   1.679  0.09317 .  
-OrientationA2              -4.759e-04  4.438e-04  -1.072  0.28362    
-OrientationA3              -2.971e-04  4.515e-04  -0.658  0.51059    
-OrientationA4              -6.272e-04  4.642e-04  -1.351  0.17664    
-OrientationA5              -3.231e-04  4.594e-04  -0.703  0.48185    
-OrientationA6               2.306e-04  4.638e-04   0.497  0.61909    
-OrientationA7               5.940e-04  4.620e-04   1.286  0.19861    
-OrientationA8               1.120e-03  4.551e-04   2.461  0.01385 *  
-OrientationA9              -4.968e-05  4.569e-04  -0.109  0.91342    
-OrientationA10              1.489e-04  4.597e-04   0.324  0.74606    
-OrientationB0              -5.625e-04  4.530e-04  -1.242  0.21432    
-OrientationB1              -5.450e-04  4.471e-04  -1.219  0.22286    
-OrientationB2               5.859e-04  4.425e-04   1.324  0.18548    
-OrientationB3               2.462e-04  4.515e-04   0.545  0.58566    
-OrientationB4              -1.891e-04  4.638e-04  -0.408  0.68351    
-OrientationB5               1.311e-04  4.607e-04   0.284  0.77606    
-OrientationB6               1.164e-04  4.616e-04   0.252  0.80093    
-OrientationB7              -3.037e-04  4.618e-04  -0.658  0.51073    
-OrientationB8              -8.639e-04  4.567e-04  -1.891  0.05857 .  
-OrientationB9              -5.723e-04  4.593e-04  -1.246  0.21277    
-OrientationB10              1.151e-03  4.604e-04   2.500  0.01243 *  
-PlayerHeightA0              1.351e-02  3.381e-02   0.399  0.68953    
-PlayerHeightA1              2.663e-02  3.094e-02   0.861  0.38941    
-PlayerHeightA2              2.776e-02  3.000e-02   0.926  0.35471    
-PlayerHeightA3             -3.934e-02  3.032e-02  -1.297  0.19448    
-PlayerHeightA4              1.306e-02  3.027e-02   0.431  0.66615    
-PlayerHeightA5             -3.936e-03  2.988e-02  -0.132  0.89520    
-PlayerHeightA6             -7.397e-03  2.885e-02  -0.256  0.79763    
-PlayerHeightA7             -1.965e-02  2.892e-02  -0.680  0.49679    
-PlayerHeightA8              6.611e-02  2.804e-02   2.357  0.01841 *  
-PlayerHeightA9              6.905e-02  2.794e-02   2.471  0.01348 *  
-PlayerHeightA10             8.483e-02  2.866e-02   2.960  0.00308 ** 
-PlayerHeightB0              1.341e-02  3.367e-02   0.398  0.69032    
-PlayerHeightB1             -4.083e-02  3.070e-02  -1.330  0.18347    
-PlayerHeightB2              1.778e-04  2.977e-02   0.006  0.99524    
-PlayerHeightB3             -2.219e-02  2.990e-02  -0.742  0.45793    
-PlayerHeightB4             -1.208e-02  3.015e-02  -0.401  0.68868    
-PlayerHeightB5             -3.372e-02  2.958e-02  -1.140  0.25426    
-PlayerHeightB6             -2.345e-02  2.873e-02  -0.816  0.41435    
-PlayerHeightB7             -1.528e-02  2.880e-02  -0.530  0.59578    
-PlayerHeightB8             -4.601e-02  2.807e-02  -1.639  0.10122    
-PlayerHeightB9             -3.807e-02  2.778e-02  -1.370  0.17063    
-PlayerHeightB10            -2.854e-03  2.855e-02  -0.100  0.92036    
-PlayerWeightA0              1.104e-06  9.567e-04   0.001  0.99908    
-PlayerWeightA1             -1.105e-03  9.196e-04  -1.202  0.22953    
-PlayerWeightA2             -1.144e-03  9.037e-04  -1.265  0.20575    
-PlayerWeightA3             -1.399e-03  8.846e-04  -1.582  0.11365    
-PlayerWeightA4              3.763e-04  8.764e-04   0.429  0.66770    
-PlayerWeightA5             -3.678e-04  8.567e-04  -0.429  0.66765    
-PlayerWeightA6             -1.874e-03  8.589e-04  -2.182  0.02913 *  
-PlayerWeightA7             -7.449e-04  8.780e-04  -0.848  0.39622    
-PlayerWeightA8              4.261e-04  9.074e-04   0.470  0.63867    
-PlayerWeightA9             -3.073e-04  9.225e-04  -0.333  0.73901    
-PlayerWeightA10             2.223e-03  9.853e-04   2.256  0.02409 *  
-PlayerWeightB0              5.201e-04  9.502e-04   0.547  0.58416    
-PlayerWeightB1             -2.951e-04  9.151e-04  -0.323  0.74707    
-PlayerWeightB2              5.722e-04  8.981e-04   0.637  0.52401    
-PlayerWeightB3              4.564e-04  8.744e-04   0.522  0.60170    
-PlayerWeightB4              1.749e-03  8.646e-04   2.023  0.04309 *  
-PlayerWeightB5              7.866e-04  8.440e-04   0.932  0.35135    
-PlayerWeightB6              1.829e-03  8.403e-04   2.177  0.02948 *  
-PlayerWeightB7              1.166e-03  8.590e-04   1.358  0.17457    
-PlayerWeightB8              1.345e-04  8.863e-04   0.152  0.87940    
-PlayerWeightB9              2.011e-04  8.985e-04   0.224  0.82293    
-PlayerWeightB10            -4.869e-04  9.644e-04  -0.505  0.61361    
-YardLine                    2.315e-02  3.019e-03   7.669 1.80e-14 ***
-Quarter                    -1.060e-02  3.370e-02  -0.314  0.75316    
-Down                        8.224e-04  6.631e-02   0.012  0.99010    
-Distance                    7.028e-02  1.198e-02   5.865 4.55e-09 ***
-OffenseFormationEMPTY       8.262e-01  6.153e+00   0.134  0.89320    
-OffenseFormationI_FORM      1.328e+00  6.020e+00   0.221  0.82535    
-OffenseFormationJUMBO       9.484e-01  6.027e+00   0.157  0.87497    
-OffenseFormationPISTOL      1.666e+00  6.022e+00   0.277  0.78205    
-OffenseFormationSHOTGUN     1.180e+00  6.019e+00   0.196  0.84456    
-OffenseFormationSINGLEBACK  1.308e+00  6.019e+00   0.217  0.82801    
-OffenseFormationUNKNOWN     2.860e-01  6.944e+00   0.041  0.96714    
-OffenseFormationWILDCAT     1.427e+00  6.071e+00   0.235  0.81421    
-RB                          1.569e-01  1.767e-01   0.888  0.37458    
-TE                         -1.585e-01  1.478e-01  -1.072  0.28359    
-WR                         -2.869e-01  1.515e-01  -1.894  0.05820 .  
-DefendersInTheBox          -5.163e-01  5.822e-02  -8.869  < 2e-16 ***
-PlayDirectionright         -6.417e-02  8.419e-02  -0.762  0.44597    
-Week                       -5.783e-03  1.049e-02  -0.551  0.58148    
-GameWeathernone            -2.210e-01  1.302e-01  -1.697  0.08973 .  
-GameWeatherovercast        -7.354e-02  9.384e-02  -0.784  0.43323    
-GameWeatherrain            -1.957e-01  1.911e-01  -1.024  0.30576    
-GameWeathersnow             2.271e-01  5.471e-01   0.415  0.67807    
-Temperature                -4.443e-03  3.052e-03  -1.456  0.14549    
-Humidity                   -2.174e-03  1.926e-03  -1.129  0.25904    
-WindSpeed                  -4.463e-03  9.319e-03  -0.479  0.63202    
-WindDirectionnone          -8.260e-02  2.419e-01  -0.341  0.73278    
-WindDirectionnorth          1.250e-01  2.830e-01   0.442  0.65879    
-WindDirectionnorth east    -1.219e-01  2.435e-01  -0.501  0.61661    
-WindDirectionnorth west    -1.399e-04  2.456e-01  -0.001  0.99955    
-WindDirectionsouth          8.536e-02  2.682e-01   0.318  0.75031    
-WindDirectionsouth east    -1.143e-01  2.544e-01  -0.449  0.65335    
-WindDirectionsouth west    -1.303e-01  2.393e-01  -0.545  0.58608    
-WindDirectionwest          -2.535e-01  2.837e-01  -0.894  0.37150    
-GameHour                    8.570e-03  8.756e-03   0.979  0.32767    
-DL                          1.484e-01  1.107e+00   0.134  0.89338    
-LB                          1.028e-01  1.109e+00   0.093  0.92613    
-BL                          4.034e-01  1.110e+00   0.363  0.71630    
-ScoreDelta                  5.939e-04  3.622e-03   0.164  0.86976    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 5.995 on 24608 degrees of freedom
-  (1 observation deleted due to missingness)
-Multiple R-squared:  0.02293,   Adjusted R-squared:  0.01705 
-F-statistic: 3.902 on 148 and 24608 DF,  p-value: < 2.2e-16
-\end{verbatim}
-
-Now lets use the step function to find the best model for the data.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\#lm\_model\_step \textless{}{-} step(lm\_model\_full, direction = "both")}
-\CommentTok{\#summary(lm\_model\_step)}
-\end{Highlighting}
-\end{Shaded}
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
-Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
-of the model can be checked.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\FunctionTok{plot}\NormalTok{(lm\_model\_full)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-
-Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-\end{verbatim}
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-7-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-10-1.pdf}
+
+}
+
+\end{figure}
+
+As we can see, the model is performing well, but fails to predict
+carries over 20 yards. This is likely due to the fact that there are
+very few carries over 20 yards in the dataset. We can check the summary
+statistics of yards to confirm this.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-15.000   1.000   3.000   4.228   6.000  99.000 
+\end{verbatim}
+
+75\% of the carries 6 yards or less, while 50\% of the carries are 3
+yards or less. This is likely the reason why the model is failing to
+predict carries over 20 yards.
+
+Our goal is to determine what plays a team should run on, therefore,
+because over 75\% of our data consists of carries 6 yards or less and
+our model fails to predict a run of over 20 yards, we will remove all
+carries over 20 yards from the dataset. This will help to ensure that
+the model is predicting the majority of the carries in the dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove all carries over 20 yards}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{20}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+Now that the data has been cleaned, we can re-run the XGBoost model:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Split the data into a training set and a testing set}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123457}\NormalTok{)}
+\NormalTok{train.prop }\OtherTok{\textless{}{-}} \FloatTok{0.80}
+\NormalTok{strats }\OtherTok{\textless{}{-}}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards}
+\NormalTok{rr }\OtherTok{\textless{}{-}} \FunctionTok{split}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(strats), strats)}
+\NormalTok{idx }\OtherTok{\textless{}{-}} \FunctionTok{sort}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{unlist}\NormalTok{(}\FunctionTok{sapply}\NormalTok{(rr, }
+        \ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{sample}\NormalTok{(x, }\FunctionTok{length}\NormalTok{(x)}\SpecialCharTok{*}\NormalTok{train.prop)))))}
+\NormalTok{train.set }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[idx, ]}
+\NormalTok{test.set }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[}\SpecialCharTok{{-}}\NormalTok{idx, ]}
+
+\CommentTok{\# Check that the average of yards is about the same in both the training and testing sets}
+\NormalTok{(ave\_train }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train.set}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 3.568446
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(ave\_test }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(test.set}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 3.563107
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(ave\_all }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 3.567376
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load the xgboost package}
+\FunctionTok{library}\NormalTok{(xgboost)}
+
+\CommentTok{\# Prepare the data for XGBoost}
+\CommentTok{\# Convert data to matrix format as xgboost works with the matrix}
+\NormalTok{train\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(train.set[, }\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(train.set) }\SpecialCharTok{==} \StringTok{"Yards"}\NormalTok{)])}
+\NormalTok{test\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(test.set[, }\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(}\FunctionTok{names}\NormalTok{(test.set) }\SpecialCharTok{==} \StringTok{"Yards"}\NormalTok{)])}
+
+\CommentTok{\# Create DMatrices}
+\NormalTok{dtrain }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ train\_matrix, }\AttributeTok{label =}\NormalTok{ train.set}\SpecialCharTok{$}\NormalTok{Yards)}
+\NormalTok{dtest }\OtherTok{\textless{}{-}} \FunctionTok{xgb.DMatrix}\NormalTok{(}\AttributeTok{data =}\NormalTok{ test\_matrix, }\AttributeTok{label =}\NormalTok{ test.set}\SpecialCharTok{$}\NormalTok{Yards)}
+
+\CommentTok{\# Set XGBoost parameters}
+\NormalTok{params }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{booster =} \StringTok{"gbtree"}\NormalTok{,}
+    \AttributeTok{objective =} \StringTok{"reg:squarederror"}\NormalTok{,  }\CommentTok{\# Objective function for regression}
+    \AttributeTok{eta =} \FloatTok{0.1}\NormalTok{,                      }\CommentTok{\# Learning rate}
+    \AttributeTok{max\_depth =} \DecValTok{6}\NormalTok{,                  }\CommentTok{\# Depth of trees}
+    \AttributeTok{subsample =} \FloatTok{0.5}\NormalTok{,                }\CommentTok{\# Subsampling of the training data}
+    \AttributeTok{colsample\_bytree =} \FloatTok{0.5}          \CommentTok{\# Subsampling of features}
+\NormalTok{)}
+
+\CommentTok{\# Number of boosting rounds}
+\NormalTok{nrounds }\OtherTok{\textless{}{-}} \DecValTok{100}
+
+\CommentTok{\# Train the model}
+\NormalTok{xgb\_model }\OtherTok{\textless{}{-}} \FunctionTok{xgb.train}\NormalTok{(}\AttributeTok{params =}\NormalTok{ params, }\AttributeTok{data =}\NormalTok{ dtrain, }\AttributeTok{nrounds =}\NormalTok{ nrounds)}
+
+\CommentTok{\# Predicting}
+\NormalTok{xgb\_predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(xgb\_model, dtest)}
+
+\CommentTok{\# Evaluate the model}
+\CommentTok{\# For example, using Root Mean Squared Error (RMSE)}
+\NormalTok{true\_values }\OtherTok{\textless{}{-}}\NormalTok{ test.set}\SpecialCharTok{$}\NormalTok{Yards}
+\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((true\_values }\SpecialCharTok{{-}}\NormalTok{ xgb\_predictions)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"RMSE:"}\NormalTok{, rmse))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "RMSE: 4.16991565836203"
+\end{verbatim}
+
+Before commenting on the results, lets take a look at some plots to get
+a better understanding of the model's performance.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of actual vs. predicted values}
+\FunctionTok{plot}\NormalTok{(true\_values, xgb\_predictions, }\AttributeTok{main =} \StringTok{"Actual vs Predicted Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Actual Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-14-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Variable importance plot}
+\NormalTok{importance\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{xgb.importance}\NormalTok{(}\AttributeTok{feature\_names =} \FunctionTok{colnames}\NormalTok{(train\_matrix), }\AttributeTok{model =}\NormalTok{ xgb\_model)}
+\FunctionTok{xgb.plot.importance}\NormalTok{(importance\_matrix)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-15-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Mean Absolute Error}
+\NormalTok{mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(true\_values }\SpecialCharTok{{-}}\NormalTok{ xgb\_predictions))}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"MAE:"}\NormalTok{, mae))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "MAE: 3.04890872430996"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Residuals plot}
+\NormalTok{residuals }\OtherTok{\textless{}{-}}\NormalTok{ true\_values }\SpecialCharTok{{-}}\NormalTok{ xgb\_predictions}
+\FunctionTok{plot}\NormalTok{(residuals, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{main =} \StringTok{"Residuals Plot"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Index"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Residual"}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =} \DecValTok{0}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-17-1.pdf}
 
 }
 
