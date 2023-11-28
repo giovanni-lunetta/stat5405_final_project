@@ -14,6 +14,7 @@ str(train, list.len=ncol(train))
 
 #rename "Yards" column to "TotalYards"
 train <- train %>% rename(TotalYards = Yards)
+train <- train %>% rename(TotalYardsFromOwnGoal = YardsFromOwnGoal)
 ```
 
 Lets start by reducing the dimensionality of this dataset. We will remove varibales that are not observable prior to the snap of the ball. These variables include the speed of each player (SA0 to SB10), the acceleration of each player (AA0-AB10), the direction the player is running in (DirA0-DirB10), the jersey number of each player (JerseyNumberA0-JerseyNumberB10), and the time between snap and the handoff (TimeDelta). Then lets obtain the entire structure of the dataset.
@@ -47,6 +48,8 @@ train <- train[sample(nrow(train)),]
 ```{r}
 #print the first 5 rows of the dataset and show all 227 columns
 train <- train %>% rename(Yards = TotalYards)
+train <- train %>% rename(YardsFromOwnGoal = TotalYardsFromOwnGoal)
+
 str(train, list.len=ncol(train))
 ```
 

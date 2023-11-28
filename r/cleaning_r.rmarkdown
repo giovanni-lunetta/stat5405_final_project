@@ -1,0 +1,486 @@
+
+Our first step in this project is to clean the data in order to make it usable for our analysis. Lets load in the data and take a look at the structure.
+
+```{r}
+df <- read.csv('/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train.csv', stringsAsFactors = FALSE)
+str(df)
+```
+
+
+Based on the data dictionary provided to us by the NFL, we already have a basic understanding of the data, but lets look at a few more important pieces of information, such as the total number of games:
+
+```{r}
+length(unique(df$GameId))
+```
+
+We can see that there are a total of 688 games.
+
+Our next step is to start cleaning columns with missing values:
+
+```{r}
+# Replace empty strings and "N/A" strings with NA for the entire dataframe
+df <- lapply(df, function(x) ifelse(x == "" | x == "N/A", NA, x))
+
+# Convert the list back to a dataframe
+df <- as.data.frame(df)
+
+# Ensure that strings are not converted to factors
+df <- data.frame(lapply(df, function(x) if (is.factor(x)) as.character(x) else x), stringsAsFactors = FALSE)
+
+# Now you can count the missing values again
+missing_values_count <- sapply(df, function(x) sum(is.na(x)))
+
+# Print the count of missing values for each column
+print(missing_values_count)
+```
+
+
+As we can see, most of the columns do not have missing values, but the ones that do, have a lot. Lets start with WindSpeed:
+
+```{r}
+value_counts <- table(df$WindSpeed)
+
+# Print the value counts
+print(value_counts)
+```
+
+
+We can standardize this column and replace the missing values with the mean of the column:
+
+```{r}
+clean_windspeed <- function(x) {
+  x <- as.character(x)
+  
+  # Check if x is a digit
+  if (grepl("^\\d+$", x)) {
+    return(as.numeric(x))
+  }
+  
+  # Check if x is purely alphabetic
+  if (grepl("^[A-Za-z]+$", x)) {
+    return(0)
+  }
+  
+  # Check if x is alphanumeric
+  if (grepl("^[A-Za-z0-9]+$", x)) {
+    return(as.numeric(unlist(strsplit(toupper(x), "M"))[1]))
+  }
+  
+  # Check if x contains a dash (range)
+  if (grepl("-", x)) {
+    range <- as.numeric(unlist(strsplit(x, "-")))
+    return(mean(range))
+  }
+  
+  # Default case
+  return(0)
+}
+
+# Apply the custom function to clean 'WindSpeed' values
+df$WindSpeed <- sapply(df$WindSpeed, clean_windspeed)
+
+# Replace NA values with the mean of the 'WindSpeed' column
+df$WindSpeed <- ifelse(is.na(df$WindSpeed), mean(df$WindSpeed, na.rm = TRUE), df$WindSpeed)
+```
+
+
+Lets plot the cleaned columns:
+
+```{r}
+library(ggplot2)
+
+# Plot the distribution of 'WindSpeed' values
+ggplot(df, aes(x = WindSpeed)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Wind Speed (MPH)", y = "Count", title = "Distribution of Wind Speed")
+```
+
+
+Next we clean WindDirection in a similar way:
+
+```{r}
+value_counts <- table(df$WindDirection)
+
+# Print the value counts
+print(value_counts)
+```
+
+```{r}
+clean_wind_direction <- function(wd) {
+  # Handle NA values
+  if (is.na(wd)) {
+    return('none')
+  }
+
+  wd <- toupper(as.character(wd))
+  
+  if (wd == 'N' || grepl('FROM N', wd)) {
+    return('north')
+  }
+  if (wd == 'S' || grepl('FROM S', wd)) {
+    return('south')
+  }
+  if (wd == 'W' || grepl('FROM W', wd)) {
+    return('west')
+  }
+  if (wd == 'E' || grepl('FROM E', wd)) {
+    return('east')
+  }
+  
+  if (grepl('FROM SW', wd) || grepl('FROM SSW', wd) || grepl('FROM WSW', wd)) {
+    return('south west')
+  }
+  if (grepl('FROM SE', wd) || grepl('FROM SSE', wd) || grepl('FROM ESE', wd)) {
+    return('south east')
+  }
+  if (grepl('FROM NW', wd) || grepl('FROM NNW', wd) || grepl('FROM WNW', wd)) {
+    return('north west')
+  }
+  if (grepl('FROM NE', wd) || grepl('FROM NNE', wd) || grepl('FROM ENE', wd)) {
+    return('north east')
+  }
+  
+  if (grepl('NW', wd) || grepl('NORTHWEST', wd)) {
+    return('north west')
+  }
+  if (grepl('NE', wd) || grepl('NORTH EAST', wd)) {
+    return('north east')
+  }
+  if (grepl('SW', wd) || grepl('SOUTHWEST', wd)) {
+    return('south west')
+  }
+  if (grepl('SE', wd) || grepl('SOUTHEAST', wd)) {
+    return('south east')
+  }
+  
+  return('none')
+}
+
+# Apply the function to the 'WindDirection' column
+df$WindDirection <- sapply(df$WindDirection, clean_wind_direction)
+```
+
+
+Because the data is currently time-series data, we can forward fill the humidity and temperature column:
+
+```{r}
+library(zoo)
+
+# Fill NA values using forward-fill for 'Humidity'
+df$Humidity <- na.locf(df$Humidity, na.rm = FALSE)
+
+# Fill NA values using forward-fill for 'Temperature'
+df$Temperature <- na.locf(df$Temperature, na.rm = FALSE)
+```
+
+
+We can also impute the missing values for Orientation, Dir, DefendersInTheBox, and OffenseFormation. Because there are not a lot of missing values, we can use the mean of the column to fill in the missing values. We can also fill in the missing values for FieldPosition:
+
+```{r}
+library(dplyr)
+
+# Calculating the means
+orientation_mean <- mean(df$Orientation, na.rm = TRUE)
+dir_mean <- mean(df$Dir, na.rm = TRUE)
+defenders_mean <- ceiling(mean(df$DefendersInTheBox, na.rm = TRUE))
+
+# Using mutate to fill NA values
+df <- df %>%
+  mutate(
+    Orientation = ifelse(is.na(Orientation), orientation_mean, Orientation),
+    Dir = ifelse(is.na(Dir), dir_mean, Dir),
+    DefendersInTheBox = ifelse(is.na(DefendersInTheBox), defenders_mean, DefendersInTheBox),
+    OffenseFormation = ifelse(is.na(OffenseFormation), 'UNKNOWN', OffenseFormation)
+  )
+
+# df$FieldPosition <- ifelse(df$YardLine == 50, df$PossessionTeam, df$FieldPosition)
+```
+
+
+Next we will create a variable called 'YardsFromOwnGoal' which will be the distance from the offense's own goal line:
+
+```{r}
+# Assuming df is your data frame
+df$YardsFromOwnGoal <- ifelse(df$FieldPosition == df$PossessionTeam, 
+                              df$YardLine, 
+                              100 - df$YardLine)
+```
+
+
+Next, the GameWeather column is a bit messy, and has multiple different values, even though there are only 4 weather types that really matter
+rain, overcast, clear, snow, and if players are climate controlled (indoors etc). Lets clean this column:
+
+```{r}
+value_counts <- table(df$GameWeather)
+
+# Print the value counts
+print(value_counts)
+```
+
+```{r}
+group_game_weather <- function(weather) {
+  rain <- c('Rainy', 'Rain Chance 40%', 'Showers',
+            'Cloudy with periods of rain, thunder possible. Winds shifting to WNW, 10-20 mph.',
+            'Scattered Showers', 'Cloudy, Rain', 'Rain shower', 'Light Rain', 'Rain')
+  overcast <- c('Cloudy, light snow accumulating 1-3"', 'Party Cloudy', 'Cloudy, chance of rain',
+                'Coudy', 'Cloudy, 50% change of rain', 'Rain likely, temps in low 40s.',
+                'Cloudy and cold', 'Cloudy, fog started developing in 2nd quarter',
+                'Partly Clouidy', '30% Chance of Rain', 'Mostly Coudy', 'Cloudy and Cool',
+                'cloudy', 'Partly cloudy', 'Overcast', 'Hazy', 'Mostly cloudy', 'Mostly Cloudy',
+                'Partly Cloudy', 'Cloudy')
+  clear <- c('Partly clear', 'Sunny and clear', 'Sun & clouds', 'Clear and Sunny',
+             'Sunny and cold', 'Sunny Skies', 'Clear and Cool', 'Clear and sunny',
+             'Sunny, highs to upper 80s', 'Mostly Sunny Skies', 'Cold',
+             'Clear and warm', 'Sunny and warm', 'Clear and cold', 'Mostly sunny',
+             'T: 51; H: 55; W: NW 10 mph', 'Clear Skies', 'Clear skies', 'Partly sunny',
+             'Fair', 'Partly Sunny', 'Mostly Sunny', 'Clear', 'Sunny')
+  snow <- c('Heavy lake effect snow', 'Snow')
+  none <- c('N/A Indoor', 'Indoors', 'Indoor', 'N/A (Indoors)', 'Controlled Climate')
+  
+  if (weather %in% rain) {
+    return('rain')
+  } else if (weather %in% overcast) {
+    return('overcast')
+  } else if (weather %in% clear) {
+    return('clear')
+  } else if (weather %in% snow) {
+    return('snow')
+  } else if (weather %in% none) {
+    return('none')
+  } else {
+    return('none')
+  }
+}
+
+df$GameWeather <- sapply(df$GameWeather, group_game_weather)
+```
+
+
+We can do a similar cleaning process with the stadium type column:
+
+```{r}
+group_stadium_types <- function(stadium) {
+  outdoor <- c('Outdoor', 'Outdoors', 'Cloudy', 'Heinz Field', 
+               'Outdor', 'Ourdoor', 'Outside', 'Outddors', 
+               'Outdoor Retr Roof-Open', 'Oudoor', 'Bowl')
+  indoor_closed <- c('Indoors', 'Indoor', 'Indoor, Roof Closed', 'Indoor, Roof Closed', 
+                     'Retractable Roof', 'Retr. Roof-Closed', 'Retr. Roof - Closed', 'Retr. Roof Closed')
+  indoor_open <- c('Indoor, Open Roof', 'Open', 'Retr. Roof-Open', 'Retr. Roof - Open')
+  dome_closed <- c('Dome', 'Domed, closed', 'Closed Dome', 'Domed', 'Dome, closed')
+  dome_open <- c('Domed, Open', 'Domed, open')
+  
+  if (stadium %in% outdoor) {
+    return('outdoor')
+  } else if (stadium %in% indoor_closed) {
+    return('indoor closed')
+  } else if (stadium %in% indoor_open) {
+    return('indoor open')
+  } else if (stadium %in% dome_closed) {
+    return('dome closed')
+  } else if (stadium %in% dome_open) {
+    return('dome open')
+  } else {
+    return('unknown')
+  }
+}
+
+df$StadiumType <- sapply(df$StadiumType, group_stadium_types)
+```
+
+
+Next, we can deal with time data:
+
+```{r}
+library(lubridate)
+
+df$TimeHandoff <- ymd_hms(df$TimeHandoff)
+df$TimeSnap <- ymd_hms(df$TimeSnap)
+df$TimeDelta <- as.numeric(difftime(df$TimeHandoff, df$TimeSnap, units = "secs"))
+
+# Optionally, you can remove 'TimeSnap' and 'TimeHandoff' columns
+df <- df[, !names(df) %in% c('TimeSnap', 'TimeHandoff')]
+
+df$BirthYear <- as.integer(sub(".*?/(.*?)/.*", "\\1", df$PlayerBirthDate))
+df$GameHour <- as.integer(sub("(.*?):.*", "\\1", df$GameClock))
+
+# Optionally, drop 'PlayerBirthDate' and 'GameClock' columns
+df <- df[, !names(df) %in% c('PlayerBirthDate', 'GameClock')]
+
+df$PlayerHeight <- sapply(strsplit(df$PlayerHeight, '-'), function(x) mean(as.numeric(x)))
+```
+
+
+We can also break up the DefensePersonnel column into individual columns with the counts of that positional player:
+
+```{r}
+process_defense <- function(x) {
+  num <- unlist(strsplit(x, ","))
+  dl <- as.integer(strsplit(num[1], " ")[[1]][1])
+  lb <- as.integer(strsplit(num[2], " ")[[1]][2])
+  db <- as.integer(strsplit(num[3], " ")[[1]][2])
+  
+  if (length(num) > 3) {
+    ol <- as.integer(strsplit(num[4], " ")[[1]][2])
+  } else {
+    ol <- 0
+  }
+  
+  return(c(dl, lb, db, ol))
+}
+
+values <- sapply(df$DefensePersonnel, process_defense)
+
+# Extracting the individual lists into separate vectors
+df <- df %>%
+  mutate(DL = values[1, ],
+         LB = values[2, ],
+         BL = values[3, ],
+         OL = values[4, ])
+
+# Optionally, drop 'DefensePersonnel' column
+df <- df %>% select(-DefensePersonnel)
+```
+
+```{r}
+str(df)
+```
+
+
+Continuing now, we can encode all categorical variables:
+
+```{r}
+
+```
+
+```{r}
+# Now you can count the missing values again
+missing_values_count <- sapply(df, function(x) sum(is.na(x)))
+
+# Print the count of missing values for each column
+print(missing_values_count)
+```
+
+
+Now for some data preprocessing. The data is currently time series data that includes a row for each player during each individual play of every snap in every game. We want to change each row to be its own play in order to not only understand the data better but also to create independent rows. Here we go through the steps to achieve this:
+
+```{r}
+library(dplyr)
+
+# Dropping columns
+# df <- df %>% select(-GameId, -PlayId, -NflId, -NflIdRusher)
+
+# Assigning specified columns to 'one', 'two', and 'more'
+one <- c('PlayId', 'Season', 'YardLine', 'Quarter', 'PossessionTeam', 'Down', 'Distance',
+         'FieldPosition', 'HomeScoreBeforePlay', 'VisitorScoreBeforePlay', 'OffenseFormation',
+         'OffensePersonnel', 'DefendersInTheBox', 'PlayDirection', 'Yards', 'HomeTeamAbbr',
+         'VisitorTeamAbbr', 'Week', 'Stadium', 'Location', 'StadiumType', 'Turf',
+         'GameWeather', 'Temperature', 'Humidity', 'WindSpeed', 'WindDirection',
+         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL', 'YardsFromOwnGoal')
+
+two <- c('Team')
+
+more <- c('X', 'Y', 'S', 'A', 'Dis', 'Orientation', 'Dir', 'DisplayName', 'JerseyNumber',
+          'PlayerHeight', 'PlayerWeight', 'PlayerCollegeName', 'Position', 'BirthYear')
+```
+
+```{r}
+library(dplyr)
+
+# ... (rest of your code initializing 'one', 'two', and 'more')
+
+new_cols <- c("PlayId")
+for (col in more) {
+  new_cols <- c(new_cols, paste0(col, 'A', 0:10), paste0(col, 'B', 0:10))
+}
+
+max_rows <- nrow(df) / 22
+
+# Initialize the train DataFrame with an additional column for PlayId
+train <- data.frame(matrix(NA, ncol = length(new_cols), nrow = max_rows))
+names(train) <- new_cols
+
+# Populate the train DataFrame
+for (col in more) {
+  for (i in 0:21) {
+    index <- seq(i + 1, nrow(df), by = 22)
+    col_name_A <- paste0(col, 'A', i %% 11)
+    col_name_B <- paste0(col, 'B', i %% 11)
+
+    # Assign values to train DataFrame
+    if (length(index) > 0) {
+      train[1:length(index), col_name_A] <- df[index, col, drop = FALSE]
+
+      if (length(index) > 1) {
+        train[1:(length(index) - 1), col_name_B] <- df[index[-1], col, drop = FALSE]
+      }
+    }
+  }
+}
+
+# Assign PlayId values to the train DataFrame
+# The length of the repeated PlayIds should match the number of rows in 'train'
+play_ids <- df$PlayId[seq(1, nrow(df), by = 22)]
+
+# The number of times each PlayId should be repeated
+# This should match the number of rows in 'train' that correspond to each play
+repeat_count <- nrow(train) / length(play_ids)
+
+train$PlayId <- rep(play_ids, each = repeat_count)
+
+# Check if the number of rows match
+if (nrow(train) != length(train$PlayId)) {
+  stop("Mismatch in the number of rows between 'train' and 'PlayId'.")
+}
+```
+
+```{r}
+# Now you can count the missing values again
+missing_values_count <- sapply(df, function(x) sum(is.na(x)))
+
+# Print the count of missing values for each column
+print(missing_values_count)
+```
+
+```{r}
+# Define the list 'one' with the correct column names that exist in your dataframe
+one <- c('Season', 'YardLine', 'Quarter', 'PossessionTeam', 'Down', 'Distance',
+         'FieldPosition', 'HomeScoreBeforePlay', 'VisitorScoreBeforePlay', 'OffenseFormation',
+         'OffensePersonnel', 'DefendersInTheBox', 'PlayDirection', 'Yards', 'HomeTeamAbbr',
+         'VisitorTeamAbbr', 'Week', 'Stadium', 'Location', 'StadiumType', 'Turf',
+         'GameWeather', 'Temperature', 'Humidity', 'WindSpeed', 'WindDirection',
+         'TimeDelta', 'GameHour', 'DL', 'LB', 'BL', 'OL', 'YardsFromOwnGoal')
+
+# Check if all columns in 'one' exist in 'df'
+all(one %in% names(df))
+
+# If the above check returns TRUE, proceed to group and summarise
+if (all(one %in% names(df))) {
+  df_one <- df %>%
+    group_by(PlayId) %>%
+    summarise(across(all_of(one), ~ first(na.omit(.x))))
+  print(df_one)
+} else {
+  stop("One or more columns in 'one' do not exist in the dataframe.")
+}
+```
+
+```{r}
+str(df_one)
+```
+
+
+Finally, we merge the two dataframes to include all of the columns that we need and then save it to a csv file:
+
+```{r}
+# Merge the summary dataframe with 'train' on 'PlayId'
+train_merged <- merge(train, df_one, by = "PlayId")
+```
+
+```{r}
+names(train_merged)
+```
+
+```{r}
+# Assuming 'df' is your dataframe
+write.csv(train_merged, file = "cleaned_train_r.csv", row.names = FALSE)
+```

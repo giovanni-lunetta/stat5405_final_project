@@ -204,7 +204,7 @@ summary(lm_model_step)
 Running this reduced model yields the following results:
 
 ```{r}
-reduced_model <- lm(Yards ~ Distance + RB + WR + DefendersInTheBox + Temperature + GameHour + DL + LB, data=football_data)
+reduced_model <- lm(Yards ~ Distance + RB + WR + DefendersInTheBox + Temperature + GameHour + DL + LB + YardsFromOwnGoal, data=football_data)
 summary(reduced_model)
 ```
 
