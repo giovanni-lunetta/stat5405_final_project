@@ -202,7 +202,7 @@ Now lets use the step function to find the best model for the data.
 Running this reduced model yields the following results:
 
 ```{r}
-reduced_model <- lm(Yards ~ XA5 + XA10 + XB1 + XB3 + YA1 + YA4 + YA9 + YB0 + YB4 + OrientationA1 + OrientationA4 + OrientationA8 + OrientationB8 + OrientationB9 + OrientationB10 + PlayerHeightA3 + PlayerHeightA8 + PlayerHeightA9 + PlayerHeightA10 + PlayerHeightB8 + PlayerWeightA1 + PlayerWeightA3 + PlayerWeightA6 + PlayerWeightA10 + PlayerWeightB4 + PlayerWeightB6 + YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data)
+reduced_model <- lm(Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data)
 summary(reduced_model)
 ```
 
@@ -215,7 +215,45 @@ plot(reduced_model)
 
 Based on the plots above, the normality assumption is clearly violated, as the Q-Q Residuals plot shows that the residuals are not normally distributed. This is due to the highly right skewed nature of the response varible and the nature of NFL games. To be more specific, the majority of the carries in NFL games are small gains, while there are few "breakout" plays resulting in large gains. Therefore, it is difficult to predict large gains from a linear model. In addition, different techniques to attempt to normalize the residuals were attempted (such as the log transformation, the squareroot transformation, the inverse trasnformation, box-cox transformation, and cube root transformation), but none of the transformations were able to normalize the residuals. In order to address the issue and possibly improve on model complexity and performance, we are going to move away from the multiple linear regression model and move towards a random forest model using XGBoost.
 
-### XGBoost Model
+# GLM with Gamma Response
+
+The next model that will be synthesized is a GLM with a gamma response. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data.
+
+Lets start by removing any rows whose yards column is negative. This is because the gamma distribution cannot have negative values. 
+
+```{r}
+# Remove any rows whose yards column is negative
+football_data <- football_data[football_data$Yards >= 0.1, ]
+football_data <- football_data[football_data$Yards <= 10, ]
+```
+
+```{r}
+# Fit the model
+glm_model_gamma <- glm(Yards ~ ., data = football_data, family = Gamma(link = "log"))
+```
+
+Now lets use the step function to find the best model for the data.
+
+```{r}
+#glm_model_step <- step(glm_model_gamma, direction = "backward")
+# summary(glm_model_step)
+```
+
+Running this reduced model yields the following results:
+
+```{r}
+reduced_model <- glm(Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
+summary(reduced_model)
+```
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
+```{r}
+par(mfrow = c(2, 2))
+old.par = par(mar = c(3, 4, 1, 2))
+plot(glm_model_gamma)
+```
+
+# XGBoost Model
 
 Moving now into the XGBoost model, the data was split into a training set and a testing set in order to evaluate performance metrics. The training set will be used to train the model, while the testing set will be used to test the model. The training set will be 80% of the data, while the testing set will be 20% of the data and randomly selected.
 
