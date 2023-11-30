@@ -181,10 +181,11 @@ df <- df %>%
 
 Next we will create a variable called 'YardsFromOwnGoal' which will be the distance from the offense's own goal line:
 ```{r}
-# Assuming df is your data frame
-df$YardsFromOwnGoal <- ifelse(df$FieldPosition == df$PossessionTeam, 
-                              df$YardLine, 
-                              100 - df$YardLine)
+df$YardsFromOwnGoal <- ifelse(is.na(df$FieldPosition) & df$YardLine == 50,
+                                50, # If FieldPosition is NA and YardLine is 50, set YardsFromOwnGoal to 50
+                                ifelse(df$PossessionTeam == df$FieldPosition,
+                                       df$YardLine,
+                                       100 - df$YardLine))
 ```
 
 Next, the GameWeather column is a bit messy, and has multiple different values, even though there are only 4 weather types that really matter
@@ -355,8 +356,6 @@ more <- c('X', 'Y', 'S', 'A', 'Dis', 'Orientation', 'Dir', 'DisplayName', 'Jerse
 ```{r}
 library(dplyr)
 
-# ... (rest of your code initializing 'one', 'two', and 'more')
-
 new_cols <- c("PlayId")
 for (col in more) {
   new_cols <- c(new_cols, paste0(col, 'A', 0:10), paste0(col, 'B', 0:10))
@@ -447,6 +446,14 @@ names(train_merged)
 ```
 
 ```{r}
-# Assuming 'df' is your dataframe
+```{r}
+# Now you can count the missing values again
+missing_values_count <- sapply(df, function(x) sum(is.na(x)))
+
+# Print the count of missing values for each column
+print(missing_values_count)
+```
+
+```{r}
 write.csv(train_merged, file = "cleaned_train_r.csv", row.names = FALSE)
 ```

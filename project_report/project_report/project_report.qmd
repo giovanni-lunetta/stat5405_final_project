@@ -175,7 +175,7 @@ First, lets start by importing the completely clean and ready to use dataset. Th
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
 
 str(football_data)
 ```

@@ -457,10 +457,11 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Next we will create a variable called ‘YardsFromOwnGoal’ which will be the distance from the offense’s own goal line:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming df is your data frame</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>YardsFromOwnGoal <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(df<span class="sc">$</span>FieldPosition <span class="sc">==</span> df<span class="sc">$</span>PossessionTeam, </span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                              df<span class="sc">$</span>YardLine, </span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                              <span class="dv">100</span> <span class="sc">-</span> df<span class="sc">$</span>YardLine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>YardsFromOwnGoal <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(df<span class="sc">$</span>FieldPosition) <span class="sc">&amp;</span> df<span class="sc">$</span>YardLine <span class="sc">==</span> <span class="dv">50</span>,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                                <span class="dv">50</span>, <span class="co"># If FieldPosition is NA and YardLine is 50, set YardsFromOwnGoal to 50</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">ifelse</span>(df<span class="sc">$</span>PossessionTeam <span class="sc">==</span> df<span class="sc">$</span>FieldPosition,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                                       df<span class="sc">$</span>YardLine,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>                                       <span class="dv">100</span> <span class="sc">-</span> df<span class="sc">$</span>YardLine))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Next, the GameWeather column is a bit messy, and has multiple different values, even though there are only 4 weather types that really matter rain, overcast, clear, snow, and if players are climate controlled (indoors etc). Lets clean this column:</p>
 <div class="cell">
@@ -842,7 +843,7 @@ VisitorScoreBeforePlay            NflIdRusher       OffenseFormation
            GameWeather            Temperature               Humidity 
                      0                      0                      0 
              WindSpeed          WindDirection       YardsFromOwnGoal 
-                     0                      0                   8602 
+                     0                      0                      0 
              TimeDelta              BirthYear               GameHour 
                      0                      0                      0 
                     DL                     LB                     BL 
@@ -874,51 +875,49 @@ VisitorScoreBeforePlay            NflIdRusher       OffenseFormation
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ... (rest of your code initializing 'one', 'two', and 'more')</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PlayId"</span>)</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(new_cols, <span class="fu">paste0</span>(col, <span class="st">'A'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>), <span class="fu">paste0</span>(col, <span class="st">'B'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>))</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PlayId"</span>)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  new_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(new_cols, <span class="fu">paste0</span>(col, <span class="st">'A'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>), <span class="fu">paste0</span>(col, <span class="st">'B'</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>))</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>max_rows <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df) <span class="sc">/</span> <span class="dv">22</span></span>
 <span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>max_rows <span class="ot">&lt;-</span> <span class="fu">nrow</span>(df) <span class="sc">/</span> <span class="dv">22</span></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize the train DataFrame with an additional column for PlayId</span></span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">ncol =</span> <span class="fu">length</span>(new_cols), <span class="at">nrow =</span> max_rows))</span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(train) <span class="ot">&lt;-</span> new_cols</span>
-<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Populate the train DataFrame</span></span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
-<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">21</span>) {</span>
-<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>    index <span class="ot">&lt;-</span> <span class="fu">seq</span>(i <span class="sc">+</span> <span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)</span>
-<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>    col_name_A <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'A'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
-<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    col_name_B <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'B'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
-<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assign values to train DataFrame</span></span>
-<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>      train[<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(index), col_name_A] <span class="ot">&lt;-</span> df[index, col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
-<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>        train[<span class="dv">1</span><span class="sc">:</span>(<span class="fu">length</span>(index) <span class="sc">-</span> <span class="dv">1</span>), col_name_B] <span class="ot">&lt;-</span> df[index[<span class="sc">-</span><span class="dv">1</span>], col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
-<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Assign PlayId values to the train DataFrame</span></span>
-<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a><span class="co"># The length of the repeated PlayIds should match the number of rows in 'train'</span></span>
-<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>play_ids <span class="ot">&lt;-</span> df<span class="sc">$</span>PlayId[<span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)]</span>
-<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a><span class="co"># The number of times each PlayId should be repeated</span></span>
-<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a><span class="co"># This should match the number of rows in 'train' that correspond to each play</span></span>
-<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>repeat_count <span class="ot">&lt;-</span> <span class="fu">nrow</span>(train) <span class="sc">/</span> <span class="fu">length</span>(play_ids)</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize the train DataFrame with an additional column for PlayId</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">ncol =</span> <span class="fu">length</span>(new_cols), <span class="at">nrow =</span> max_rows))</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(train) <span class="ot">&lt;-</span> new_cols</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Populate the train DataFrame</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> more) {</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">21</span>) {</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>    index <span class="ot">&lt;-</span> <span class="fu">seq</span>(i <span class="sc">+</span> <span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>    col_name_A <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'A'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>    col_name_B <span class="ot">&lt;-</span> <span class="fu">paste0</span>(col, <span class="st">'B'</span>, i <span class="sc">%%</span> <span class="dv">11</span>)</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assign values to train DataFrame</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>      train[<span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(index), col_name_A] <span class="ot">&lt;-</span> df[index, col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">length</span>(index) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>        train[<span class="dv">1</span><span class="sc">:</span>(<span class="fu">length</span>(index) <span class="sc">-</span> <span class="dv">1</span>), col_name_B] <span class="ot">&lt;-</span> df[index[<span class="sc">-</span><span class="dv">1</span>], col, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Assign PlayId values to the train DataFrame</span></span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a><span class="co"># The length of the repeated PlayIds should match the number of rows in 'train'</span></span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a>play_ids <span class="ot">&lt;-</span> df<span class="sc">$</span>PlayId[<span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(df), <span class="at">by =</span> <span class="dv">22</span>)]</span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a><span class="co"># The number of times each PlayId should be repeated</span></span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a><span class="co"># This should match the number of rows in 'train' that correspond to each play</span></span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>repeat_count <span class="ot">&lt;-</span> <span class="fu">nrow</span>(train) <span class="sc">/</span> <span class="fu">length</span>(play_ids)</span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>train<span class="sc">$</span>PlayId <span class="ot">&lt;-</span> <span class="fu">rep</span>(play_ids, <span class="at">each =</span> repeat_count)</span>
 <span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a>train<span class="sc">$</span>PlayId <span class="ot">&lt;-</span> <span class="fu">rep</span>(play_ids, <span class="at">each =</span> repeat_count)</span>
-<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if the number of rows match</span></span>
-<span id="cb38-45"><a href="#cb38-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(train) <span class="sc">!=</span> <span class="fu">length</span>(train<span class="sc">$</span>PlayId)) {</span>
-<span id="cb38-46"><a href="#cb38-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Mismatch in the number of rows between 'train' and 'PlayId'."</span>)</span>
-<span id="cb38-47"><a href="#cb38-47" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if the number of rows match</span></span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(train) <span class="sc">!=</span> <span class="fu">length</span>(train<span class="sc">$</span>PlayId)) {</span>
+<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Mismatch in the number of rows between 'train' and 'PlayId'."</span>)</span>
+<span id="cb38-45"><a href="#cb38-45" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now you can count the missing values again</span></span>
@@ -956,7 +955,7 @@ VisitorScoreBeforePlay            NflIdRusher       OffenseFormation
            GameWeather            Temperature               Humidity 
                      0                      0                      0 
              WindSpeed          WindDirection       YardsFromOwnGoal 
-                     0                      0                   8602 
+                     0                      0                      0 
              TimeDelta              BirthYear               GameHour 
                      0                      0                      0 
                     DL                     LB                     BL 
@@ -1048,7 +1047,7 @@ VisitorScoreBeforePlay            NflIdRusher       OffenseFormation
  $ LB                    : num [1:31007] 3 3 3 4 2 3 4 4 2 2 ...
  $ BL                    : num [1:31007] 6 6 6 3 6 6 4 4 6 6 ...
  $ OL                    : num [1:31007] 0 0 0 0 0 0 0 0 0 0 ...
- $ YardsFromOwnGoal      : num [1:31007] 35 43 65 98 25 71 81 90 10 NA ...</code></pre>
+ $ YardsFromOwnGoal      : num [1:31007] 35 43 65 98 25 71 81 90 10 50 ...</code></pre>
 </div>
 </div>
 <p>Finally, we merge the two dataframes to include all of the columns that we need and then save it to a csv file:</p>
@@ -1176,8 +1175,55 @@ VisitorScoreBeforePlay            NflIdRusher       OffenseFormation
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming 'df' is your dataframe</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(train_merged, <span class="at">file =</span> <span class="st">"cleaned_train_r.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Now you can count the missing values again</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>missing_values_count <span class="ot">&lt;-</span> <span class="fu">sapply</span>(df, <span class="cf">function</span>(x) <span class="fu">sum</span>(<span class="fu">is.na</span>(x)))</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the count of missing values for each column</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(missing_values_count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                GameId                 PlayId                   Team 
+                     0                      0                      0 
+                     X                      Y                      S 
+                     0                      0                      0 
+                     A                    Dis            Orientation 
+                     0                      0                      0 
+                   Dir                  NflId            DisplayName 
+                     0                      0                      0 
+          JerseyNumber                 Season               YardLine 
+                     0                      0                      0 
+               Quarter         PossessionTeam                   Down 
+                     0                      0                      0 
+              Distance          FieldPosition    HomeScoreBeforePlay 
+                     0                   8602                      0 
+VisitorScoreBeforePlay            NflIdRusher       OffenseFormation 
+                     0                      0                      0 
+      OffensePersonnel      DefendersInTheBox          PlayDirection 
+                     0                      0                      0 
+                 Yards           PlayerHeight           PlayerWeight 
+                     0                      0                      0 
+     PlayerCollegeName               Position           HomeTeamAbbr 
+                     0                      0                      0 
+       VisitorTeamAbbr                   Week                Stadium 
+                     0                      0                      0 
+              Location            StadiumType                   Turf 
+                     0                      0                      0 
+           GameWeather            Temperature               Humidity 
+                     0                      0                      0 
+             WindSpeed          WindDirection       YardsFromOwnGoal 
+                     0                      0                      0 
+             TimeDelta              BirthYear               GameHour 
+                     0                      0                      0 
+                    DL                     LB                     BL 
+                     0                      0                      0 
+                    OL 
+                     0 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(train_merged, <span class="at">file =</span> <span class="st">"cleaned_train_r.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 </main>
