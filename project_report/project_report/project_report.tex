@@ -246,7 +246,7 @@ predominantly pass-oriented league.
     Sports Analytics
 \end{keyword}
 \end{frontmatter}
-    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[sharp corners, interior hidden, frame hidden, borderline west={3pt}{0pt}{shadecolor}, enhanced, boxrule=0pt, breakable]}{\end{tcolorbox}}\fi
+    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[boxrule=0pt, frame hidden, sharp corners, borderline west={3pt}{0pt}{shadecolor}, enhanced, interior hidden, breakable]}{\end{tcolorbox}}\fi
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -638,15 +638,113 @@ cleaning and preprocessing section.
 \begin{Highlighting}[]
 \CommentTok{\# Import the dataset}
 \NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"/Users/samlutz10/Desktop/STAT5405/Final Project/train\_ready.csv"}\NormalTok{)}
+
+\FunctionTok{str}\NormalTok{(football\_data)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+'data.frame':   31007 obs. of  21 variables:
+ $ Quarter          : int  2 2 4 2 2 1 2 4 4 4 ...
+ $ Down             : int  1 1 1 2 1 1 1 1 1 1 ...
+ $ Distance         : int  10 10 10 10 10 10 10 10 10 10 ...
+ $ OffenseFormation : chr  "SINGLEBACK" "I_FORM" "I_FORM" "SINGLEBACK" ...
+ $ RB               : int  2 2 2 1 1 1 1 1 2 1 ...
+ $ TE               : int  1 1 2 1 1 2 1 1 1 1 ...
+ $ WR               : int  2 2 1 3 3 2 3 3 1 3 ...
+ $ DefendersInTheBox: int  8 7 8 6 7 8 6 7 7 7 ...
+ $ Yards            : int  1 12 3 -2 14 4 3 7 7 3 ...
+ $ Week             : int  3 9 14 2 2 2 17 11 17 3 ...
+ $ GameWeather      : chr  "clear" "overcast" "clear" "clear" ...
+ $ Temperature      : int  84 77 39 81 79 79 19 68 71 68 ...
+ $ Humidity         : int  25 62 55 45 48 48 36 54 66 42 ...
+ $ WindSpeed        : num  5 16 11 5 5 5 12 4 9 13 ...
+ $ WindDirection    : chr  "west" "south east" "none" "east" ...
+ $ GameHour         : int  15 9 3 3 13 12 2 6 15 12 ...
+ $ DL               : int  4 3 4 4 2 4 2 4 4 4 ...
+ $ LB               : int  3 4 3 2 4 3 4 2 3 2 ...
+ $ BL               : int  4 4 4 5 5 4 5 5 4 5 ...
+ $ YardsFromOwnGoal : int  40 84 79 21 86 25 49 25 65 54 ...
+ $ ScoreDelta       : int  -7 0 -13 -11 0 7 -11 41 -16 -8 ...
+\end{verbatim}
+
+Since we are only focused on the most common plays and not breakout
+runs, we will remove any data of 10 yards or more. This is due to the
+fact that plays resulting in 10 yards are considered to be just as
+successful are play resulting in more than 10 yards. In addition, any
+plays resulting in 0 or negative yards will be removed. This is due to
+the fact that these plays are considered to be unsuccessful.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove any rows whose yards column is greater than 30}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10} \SpecialCharTok{\&}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+Lets now look at the histogram of Yards to get a better understanding of
+the distribution of the response variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Histogram of Yards}
+\FunctionTok{hist}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, }\AttributeTok{main =} \StringTok{"Histogram of Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-3-1.pdf}
+
+}
+
+\end{figure}
+
+Based on the histogram above, it is apparent that the number of yards is
+skewed to the right. In order to address this issue, we will take the
+log of the yards variable. This will help to normalize the distribution
+of the response variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Histogram of Yards}
+\FunctionTok{hist}\NormalTok{(}\FunctionTok{log}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards), }\AttributeTok{main =} \StringTok{"Histogram of Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-4-1.pdf}
+
+}
+
+\end{figure}
+
+In addition, lets take a look at some scatterplots of the response
+variable versus some of the predictors. This will help to gain a better
+understanding of the relationship between the response variable and the
+predictors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{pairs}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, football\_data}\SpecialCharTok{$}\NormalTok{Distance))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-5-1.pdf}
+
+}
+
+\end{figure}
 
 The first model that will be synthesized has only an intercept and no
 predictors.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
 \CommentTok{\# summary(lm\_model\_null)}
 \end{Highlighting}
 \end{Shaded}
@@ -657,7 +755,7 @@ full model, there will be 0 interactions between the predictors.
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# Fit the model}
-\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
 \CommentTok{\# summary(lm\_model\_full)}
 \end{Highlighting}
 \end{Shaded}
@@ -666,16 +764,319 @@ Now lets use the step function to find the best model for the data.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\#lm\_model\_step \textless{}{-} step(lm\_model\_full, direction = "backward")}
-\CommentTok{\# summary(lm\_model\_step)}
+\NormalTok{lm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(lm\_model\_full, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+Start:  AIC=-17699.97
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    TE + WR + DefendersInTheBox + Week + GameWeather + Temperature + 
+    Humidity + WindSpeed + WindDirection + GameHour + DL + LB + 
+    BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- WindDirection      8     1.415 9504.2 -17713
+- GameWeather        4     1.958 9504.8 -17704
+- TE                 1     0.001 9502.8 -17702
+- LB                 1     0.002 9502.8 -17702
+- WindSpeed          1     0.002 9502.8 -17702
+- DL                 1     0.003 9502.8 -17702
+- Quarter            1     0.029 9502.8 -17702
+- BL                 1     0.039 9502.8 -17702
+- RB                 1     0.050 9502.9 -17702
+- Humidity           1     0.072 9502.9 -17702
+- Week               1     0.252 9503.1 -17701
+- WR                 1     0.599 9503.4 -17701
+<none>                           9502.8 -17700
+- ScoreDelta         1     1.144 9504.0 -17699
+- GameHour           1     1.598 9504.4 -17698
+- Down               1     1.864 9504.7 -17698
+- Temperature        1     4.896 9507.7 -17691
+- YardsFromOwnGoal   1    25.906 9528.7 -17643
+- Distance           1    35.557 9538.4 -17621
+- OffenseFormation   8    46.438 9549.2 -17611
+- DefendersInTheBox  1    86.488 9589.3 -17506
+
+Step:  AIC=-17712.75
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    TE + WR + DefendersInTheBox + Week + GameWeather + Temperature + 
+    Humidity + WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- GameWeather        4     1.517 9505.7 -17717
+- TE                 1     0.000 9504.2 -17715
+- LB                 1     0.001 9504.2 -17715
+- DL                 1     0.003 9504.2 -17715
+- Humidity           1     0.010 9504.2 -17715
+- Quarter            1     0.029 9504.2 -17715
+- BL                 1     0.040 9504.3 -17715
+- RB                 1     0.048 9504.3 -17715
+- WindSpeed          1     0.129 9504.4 -17714
+- Week               1     0.186 9504.4 -17714
+- WR                 1     0.618 9504.8 -17713
+<none>                           9504.2 -17713
+- ScoreDelta         1     1.116 9505.3 -17712
+- GameHour           1     1.610 9505.8 -17711
+- Down               1     1.826 9506.0 -17711
+- Temperature        1     4.576 9508.8 -17704
+- YardsFromOwnGoal   1    25.791 9530.0 -17656
+- Distance           1    35.502 9539.7 -17634
+- OffenseFormation   8    46.662 9550.9 -17623
+- DefendersInTheBox  1    86.611 9590.8 -17519
+
+Step:  AIC=-17717.3
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    TE + WR + DefendersInTheBox + Week + Temperature + Humidity + 
+    WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- TE                 1     0.000 9505.7 -17719
+- WindSpeed          1     0.001 9505.7 -17719
+- LB                 1     0.002 9505.7 -17719
+- DL                 1     0.003 9505.7 -17719
+- Quarter            1     0.027 9505.8 -17719
+- RB                 1     0.039 9505.8 -17719
+- BL                 1     0.042 9505.8 -17719
+- Week               1     0.166 9505.9 -17719
+- Humidity           1     0.431 9506.2 -17718
+- WR                 1     0.648 9506.4 -17718
+<none>                           9505.7 -17717
+- ScoreDelta         1     1.085 9506.8 -17717
+- GameHour           1     1.624 9507.4 -17716
+- Down               1     1.800 9507.5 -17715
+- Temperature        1     4.231 9510.0 -17710
+- YardsFromOwnGoal   1    25.718 9531.5 -17661
+- Distance           1    35.409 9541.1 -17639
+- OffenseFormation   8    46.637 9552.4 -17628
+- DefendersInTheBox  1    86.888 9592.6 -17523
+
+Step:  AIC=-17719.3
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    WR + DefendersInTheBox + Week + Temperature + Humidity + 
+    WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- WindSpeed          1     0.001 9505.7 -17721
+- LB                 1     0.002 9505.7 -17721
+- DL                 1     0.003 9505.7 -17721
+- Quarter            1     0.027 9505.8 -17721
+- BL                 1     0.042 9505.8 -17721
+- RB                 1     0.083 9505.8 -17721
+- Week               1     0.167 9505.9 -17721
+- Humidity           1     0.433 9506.2 -17720
+<none>                           9505.7 -17719
+- ScoreDelta         1     1.085 9506.8 -17719
+- GameHour           1     1.624 9507.4 -17718
+- Down               1     1.801 9507.5 -17717
+- WR                 1     2.395 9508.1 -17716
+- Temperature        1     4.232 9510.0 -17712
+- YardsFromOwnGoal   1    25.728 9531.5 -17663
+- Distance           1    35.419 9541.2 -17641
+- OffenseFormation   8    48.132 9553.9 -17626
+- DefendersInTheBox  1    87.018 9592.8 -17524
+
+Step:  AIC=-17721.3
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    WR + DefendersInTheBox + Week + Temperature + Humidity + 
+    GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- LB                 1     0.002 9505.7 -17723
+- DL                 1     0.003 9505.7 -17723
+- Quarter            1     0.027 9505.8 -17723
+- BL                 1     0.042 9505.8 -17723
+- RB                 1     0.083 9505.8 -17723
+- Week               1     0.166 9505.9 -17723
+- Humidity           1     0.462 9506.2 -17722
+<none>                           9505.7 -17721
+- ScoreDelta         1     1.086 9506.8 -17721
+- GameHour           1     1.624 9507.4 -17720
+- Down               1     1.800 9507.5 -17719
+- WR                 1     2.395 9508.1 -17718
+- Temperature        1     4.288 9510.0 -17714
+- YardsFromOwnGoal   1    25.730 9531.5 -17665
+- Distance           1    35.433 9541.2 -17643
+- OffenseFormation   8    48.139 9553.9 -17628
+- DefendersInTheBox  1    87.022 9592.8 -17526
+
+Step:  AIC=-17723.29
+log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
+    WR + DefendersInTheBox + Week + Temperature + Humidity + 
+    GameHour + DL + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- Quarter            1     0.027 9505.8 -17725
+- RB                 1     0.083 9505.8 -17725
+- DL                 1     0.109 9505.8 -17725
+- Week               1     0.166 9505.9 -17725
+- Humidity           1     0.462 9506.2 -17724
+<none>                           9505.7 -17723
+- ScoreDelta         1     1.084 9506.8 -17723
+- GameHour           1     1.627 9507.4 -17722
+- Down               1     1.801 9507.5 -17721
+- WR                 1     2.394 9508.1 -17720
+- BL                 1     3.354 9509.1 -17718
+- Temperature        1     4.293 9510.0 -17716
+- YardsFromOwnGoal   1    25.750 9531.5 -17667
+- Distance           1    35.442 9541.2 -17645
+- OffenseFormation   8    48.457 9554.2 -17629
+- DefendersInTheBox  1    87.158 9592.9 -17528
+
+Step:  AIC=-17725.23
+log(Yards) ~ Down + Distance + OffenseFormation + RB + WR + DefendersInTheBox + 
+    Week + Temperature + Humidity + GameHour + DL + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- RB                 1     0.085 9505.9 -17727
+- DL                 1     0.109 9505.9 -17727
+- Week               1     0.168 9505.9 -17727
+- Humidity           1     0.464 9506.2 -17726
+<none>                           9505.8 -17725
+- ScoreDelta         1     1.071 9506.8 -17725
+- GameHour           1     1.618 9507.4 -17724
+- Down               1     1.819 9507.6 -17723
+- WR                 1     2.409 9508.2 -17722
+- BL                 1     3.370 9509.1 -17720
+- Temperature        1     4.297 9510.1 -17718
+- YardsFromOwnGoal   1    25.738 9531.5 -17669
+- Distance           1    35.537 9541.3 -17646
+- OffenseFormation   8    48.477 9554.2 -17631
+- DefendersInTheBox  1    87.202 9593.0 -17530
+
+Step:  AIC=-17727.04
+log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
+    Week + Temperature + Humidity + GameHour + DL + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- DL                 1     0.106 9506.0 -17729
+- Week               1     0.169 9506.0 -17729
+- Humidity           1     0.450 9506.3 -17728
+<none>                           9505.9 -17727
+- ScoreDelta         1     1.061 9506.9 -17727
+- GameHour           1     1.617 9507.5 -17725
+- Down               1     1.832 9507.7 -17725
+- WR                 1     2.333 9508.2 -17724
+- BL                 1     3.338 9509.2 -17721
+- Temperature        1     4.302 9510.2 -17719
+- YardsFromOwnGoal   1    25.798 9531.6 -17670
+- Distance           1    35.623 9541.5 -17648
+- OffenseFormation   8    48.393 9554.2 -17633
+- DefendersInTheBox  1    87.237 9593.1 -17532
+
+Step:  AIC=-17728.8
+log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
+    Week + Temperature + Humidity + GameHour + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- Week               1     0.147 9506.1 -17730
+- Humidity           1     0.457 9506.4 -17730
+<none>                           9506.0 -17729
+- ScoreDelta         1     1.039 9507.0 -17728
+- GameHour           1     1.618 9507.6 -17727
+- Down               1     1.810 9507.8 -17727
+- WR                 1     2.313 9508.3 -17726
+- BL                 1     3.242 9509.2 -17723
+- Temperature        1     4.211 9510.2 -17721
+- YardsFromOwnGoal   1    25.771 9531.7 -17672
+- Distance           1    35.525 9541.5 -17650
+- OffenseFormation   8    48.294 9554.3 -17635
+- DefendersInTheBox  1    87.147 9593.1 -17534
+
+Step:  AIC=-17730.46
+log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
+    Temperature + Humidity + GameHour + BL + YardsFromOwnGoal + 
+    ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- Humidity           1     0.410 9506.5 -17732
+<none>                           9506.1 -17730
+- ScoreDelta         1     1.066 9507.2 -17730
+- GameHour           1     1.614 9507.7 -17729
+- Down               1     1.798 9507.9 -17728
+- WR                 1     2.352 9508.5 -17727
+- BL                 1     3.240 9509.3 -17725
+- Temperature        1     5.340 9511.4 -17720
+- YardsFromOwnGoal   1    25.706 9531.8 -17674
+- Distance           1    35.518 9541.6 -17652
+- OffenseFormation   8    48.268 9554.4 -17637
+- DefendersInTheBox  1    87.446 9593.6 -17534
+
+Step:  AIC=-17731.53
+log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
+    Temperature + GameHour + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+<none>                           9506.5 -17732
+- ScoreDelta         1     1.005 9507.5 -17731
+- GameHour           1     1.594 9508.1 -17730
+- Down               1     1.826 9508.3 -17729
+- WR                 1     2.308 9508.8 -17728
+- BL                 1     3.234 9509.8 -17726
+- Temperature        1     4.954 9511.5 -17722
+- YardsFromOwnGoal   1    25.767 9532.3 -17675
+- Distance           1    35.677 9542.2 -17652
+- OffenseFormation   8    48.495 9555.0 -17638
+- DefendersInTheBox  1    87.145 9593.7 -17536
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(lm\_model\_step)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = log(Yards) ~ Down + Distance + OffenseFormation + 
+    WR + DefendersInTheBox + Temperature + GameHour + BL + YardsFromOwnGoal + 
+    ScoreDelta, data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.70141 -0.45056  0.06292  0.50516  1.57950 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 1.8300909  0.6691300   2.735 0.006243 ** 
+Down                        0.0161672  0.0079365   2.037 0.041657 *  
+Distance                    0.0131352  0.0014588   9.004  < 2e-16 ***
+OffenseFormationEMPTY       0.0436278  0.6783426   0.064 0.948720    
+OffenseFormationI_FORM     -0.1140737  0.6635919  -0.172 0.863515    
+OffenseFormationJUMBO      -0.4506772  0.6645768  -0.678 0.497689    
+OffenseFormationPISTOL     -0.1008327  0.6639361  -0.152 0.879290    
+OffenseFormationSHOTGUN    -0.1508435  0.6634845  -0.227 0.820153    
+OffenseFormationSINGLEBACK -0.1118227  0.6634980  -0.169 0.866164    
+OffenseFormationUNKNOWN    -0.1587977  0.7417972  -0.214 0.830493    
+OffenseFormationWILDCAT    -0.0488034  0.6691285  -0.073 0.941858    
+WR                         -0.0205143  0.0089567  -2.290 0.022009 *  
+DefendersInTheBox          -0.0962724  0.0068411 -14.073  < 2e-16 ***
+Temperature                -0.0008836  0.0002634  -3.355 0.000794 ***
+GameHour                    0.0019662  0.0010329   1.904 0.056986 .  
+BL                          0.0286437  0.0105657   2.711 0.006713 ** 
+YardsFromOwnGoal           -0.0014363  0.0001877  -7.652 2.06e-14 ***
+ScoreDelta                 -0.0006387  0.0004226  -1.511 0.130711    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.6634 on 21604 degrees of freedom
+  (279 observations deleted due to missingness)
+Multiple R-squared:  0.04789,   Adjusted R-squared:  0.04714 
+F-statistic: 63.92 on 17 and 21604 DF,  p-value: < 2.2e-16
+\end{verbatim}
 
 Running this reduced model yields the following results:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardLine }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data)}
+\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, }\AttributeTok{data=}\NormalTok{football\_data)}
 \FunctionTok{summary}\NormalTok{(reduced\_model)}
 \end{Highlighting}
 \end{Shaded}
@@ -683,28 +1084,32 @@ Running this reduced model yields the following results:
 \begin{verbatim}
 
 Call:
-lm(formula = Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + 
-    BL, data = football_data)
+lm(formula = log(Yards) ~ Distance + RB + WR + DefendersInTheBox^2 + 
+    Temperature + GameHour + DL + LB + YardsFromOwnGoal^2, data = football_data)
 
 Residuals:
-    Min      1Q  Median      3Q     Max 
--20.495  -3.182  -1.197   1.307  95.393 
+     Min       1Q   Median       3Q      Max 
+-1.70860 -0.45847  0.06848  0.50619  1.44826 
 
 Coefficients:
-                   Estimate Std. Error t value Pr(>|t|)    
-(Intercept)        5.279725   0.680369   7.760 8.75e-15 ***
-YardLine           0.024053   0.002822   8.523  < 2e-16 ***
-Distance           0.076355   0.009854   7.749 9.56e-15 ***
-RB                 0.300531   0.098753   3.043  0.00234 ** 
-WR                -0.128866   0.072585  -1.775  0.07584 .  
-DefendersInTheBox -0.530773   0.053333  -9.952  < 2e-16 ***
-BL                 0.270861   0.083538   3.242  0.00119 ** 
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        2.120e+00  8.627e-02  24.574  < 2e-16 ***
+Distance           1.266e-02  1.275e-03   9.929  < 2e-16 ***
+RB                -1.792e-05  1.231e-02  -0.001  0.99884    
+WR                -1.878e-02  9.028e-03  -2.081  0.03748 *  
+DefendersInTheBox -1.017e-01  6.702e-03 -15.176  < 2e-16 ***
+Temperature       -8.982e-04  2.643e-04  -3.398  0.00068 ***
+GameHour           2.158e-03  1.031e-03   2.094  0.03630 *  
+DL                -3.407e-02  1.100e-02  -3.098  0.00195 ** 
+LB                -3.416e-02  1.075e-02  -3.177  0.00149 ** 
+YardsFromOwnGoal  -1.642e-03  1.868e-04  -8.791  < 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 6.399 on 31000 degrees of freedom
-Multiple R-squared:  0.01604,   Adjusted R-squared:  0.01585 
-F-statistic: 84.24 on 6 and 31000 DF,  p-value: < 2.2e-16
+Residual standard error: 0.665 on 21612 degrees of freedom
+  (279 observations deleted due to missingness)
+Multiple R-squared:  0.04282,   Adjusted R-squared:  0.04242 
+F-statistic: 107.4 on 9 and 21612 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
@@ -721,27 +1126,75 @@ of the model can be checked.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-6-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-10-1.pdf}
 
 }
 
 \end{figure}
 
-Based on the plots above, the normality assumption is clearly violated,
-as the Q-Q Residuals plot shows that the residuals are not normally
-distributed. This is due to the highly right skewed nature of the
-response varible and the nature of NFL games. To be more specific, the
-majority of the carries in NFL games are small gains, while there are
-few ``breakout'' plays resulting in large gains. Therefore, it is
-difficult to predict large gains from a linear model. In addition,
-different techniques to attempt to normalize the residuals were
-attempted (such as the log transformation, the squareroot
-transformation, the inverse trasnformation, box-cox transformation, and
-cube root transformation), but none of the transformations were able to
-normalize the residuals. In order to address the issue and possibly
-improve on model complexity and performance, we are going to move away
-from the multiple linear regression model and move towards a random
-forest model using XGBoost.
+Based on the plots above, the normality assumption is not violated, as
+the Q-Q Residuals plot shows that the residuals are mainly normally
+distributed.
+
+In order to gain a better understanding of how these variables affect
+the predicted yards, scatter plots of the predicted yards versus each of
+the predictors will be created. However, the only scatter plots that
+will be synthesized are those that have the three highest t values:
+Distance, DefendersInTheBox, and YardsFromOwnGoal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(reduced\_model, football\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. Distance}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-12-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. DefendersInTheBox}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. DefendersInTheBox"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"DefendersInTheBox"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-13-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. YardsFromOwnGoal}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-14-1.pdf}
+
+}
+
+\end{figure}
 
 \hypertarget{glm-with-gamma-response}{%
 \section{GLM with Gamma Response}\label{glm-with-gamma-response}}
@@ -800,7 +1253,7 @@ Running this reduced model yields the following results:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardLine }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
 \FunctionTok{summary}\NormalTok{(reduced\_model)}
 \end{Highlighting}
 \end{Shaded}
@@ -808,26 +1261,27 @@ Running this reduced model yields the following results:
 \begin{verbatim}
 
 Call:
-glm(formula = Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + 
-    BL, family = Gamma(link = "log"), data = football_data)
+glm(formula = Yards ~ YardsFromOwnGoal + Distance + RB + WR + 
+    DefendersInTheBox + BL, family = Gamma(link = "log"), data = football_data)
 
 Coefficients:
                     Estimate Std. Error t value Pr(>|t|)    
-(Intercept)        1.6778271  0.0773487  21.692  < 2e-16 ***
-YardLine           0.0027029  0.0003195   8.459  < 2e-16 ***
-Distance           0.0145734  0.0011250  12.955  < 2e-16 ***
-RB                -0.0011893  0.0111970  -0.106 0.915412    
-WR                -0.0161941  0.0082199  -1.970 0.048840 *  
-DefendersInTheBox -0.0932604  0.0060951 -15.301  < 2e-16 ***
-BL                 0.0328079  0.0094865   3.458 0.000544 ***
+(Intercept)        1.8518606  0.0767537  24.127  < 2e-16 ***
+YardsFromOwnGoal  -0.0015937  0.0001702  -9.365  < 2e-16 ***
+Distance           0.0122863  0.0011656  10.541  < 2e-16 ***
+RB                 0.0008371  0.0112653   0.074 0.940768    
+WR                -0.0143714  0.0082703  -1.738 0.082276 .  
+DefendersInTheBox -0.0945131  0.0061146 -15.457  < 2e-16 ***
+BL                 0.0328700  0.0095367   3.447 0.000569 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-(Dispersion parameter for Gamma family taken to be 0.3709065)
+(Dispersion parameter for Gamma family taken to be 0.3702443)
 
-    Null deviance: 9177.3  on 21900  degrees of freedom
-Residual deviance: 8845.7  on 21894  degrees of freedom
-AIC: 93947
+    Null deviance: 9063.4  on 21621  degrees of freedom
+Residual deviance: 8725.7  on 21615  degrees of freedom
+  (279 observations deleted due to missingness)
+AIC: 92734
 
 Number of Fisher Scoring iterations: 5
 \end{verbatim}
@@ -846,12 +1300,12 @@ of the model can be checked.
 
 \begin{verbatim}
 Warning: not plotting observations with leverage one:
-  19614
+  19377
 \end{verbatim}
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-11-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-19-1.pdf}
 
 }
 
@@ -888,7 +1342,7 @@ Kaplan, J. & Schlegel, B. (2023). fastDummies: Fast Creation of Dummy (Binary) C
 \begin{Highlighting}[]
 \CommentTok{\# Convert specified factor columns to dummy variables}
 \NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{dummy\_cols}\NormalTok{(football\_data, }
-                            \AttributeTok{select\_columns =} \FunctionTok{c}\NormalTok{(}\StringTok{"WindDirection"}\NormalTok{, }\StringTok{"GameWeather"}\NormalTok{, }\StringTok{"PlayDirection"}\NormalTok{, }\StringTok{"OffenseFormation"}\NormalTok{), }
+                            \AttributeTok{select\_columns =} \FunctionTok{c}\NormalTok{(}\StringTok{"WindDirection"}\NormalTok{, }\StringTok{"GameWeather"}\NormalTok{, }\StringTok{"OffenseFormation"}\NormalTok{), }
                             \AttributeTok{remove\_selected\_columns =} \ConstantTok{TRUE}\NormalTok{)}
 
 \CommentTok{\# Split the data into a training set and a testing set}
@@ -997,7 +1451,7 @@ visual indication of how well the model is performing:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-15-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-23-1.pdf}
 
 }
 
@@ -1121,7 +1575,7 @@ Now that the data has been cleaned, we can re-run the XGBoost model:
 \end{Shaded}
 
 \begin{verbatim}
-[1] "RMSE: 2.36151623896504"
+[1] "RMSE: 2.35442254039298"
 \end{verbatim}
 
 Before commenting on the results, lets take a look at some plots to get
@@ -1137,7 +1591,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-19-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-27-1.pdf}
 
 }
 
@@ -1153,7 +1607,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-20-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-28-1.pdf}
 
 }
 
@@ -1168,7 +1622,7 @@ a better understanding of the model's performance.
 \end{Shaded}
 
 \begin{verbatim}
-[1] "MAE: 1.90716324579757"
+[1] "MAE: 1.90529614272384"
 \end{verbatim}
 
 \begin{Shaded}
@@ -1182,7 +1636,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-22-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-30-1.pdf}
 
 }
 

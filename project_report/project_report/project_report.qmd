@@ -175,14 +175,41 @@ First, lets start by importing the completely clean and ready to use dataset. Th
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
 
 str(football_data)
 ```
 
+Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
+  
+```{r}
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+```
+
+Lets now look at the histogram of Yards to get a better understanding of the distribution of the response variable.
+
+```{r}
+# Histogram of Yards
+hist(football_data$Yards, main = "Histogram of Yards", xlab = "Yards", ylab = "Frequency", col = "blue")
+```
+
+Based on the histogram above, it is apparent that the number of yards is skewed to the right. In order to address this issue, we will take the log of the yards variable. This will help to normalize the distribution of the response variable.
+
+```{r}
+# Histogram of Yards
+hist(log(football_data$Yards), main = "Histogram of Yards", xlab = "Yards", ylab = "Frequency", col = "blue")
+```
+
+In addition, lets take a look at some scatterplots of the response variable versus some of the predictors. This will help to gain a better understanding of the relationship between the response variable and the predictors.
+
+```{r}
+pairs(cbind(football_data$Yards, football_data$DefendersInTheBox, football_data$YardsFromOwnGoal, football_data$Distance))
+```
+
 The first model that will be synthesized has only an intercept and no predictors.
 ```{r}
-lm_model_null <- lm(Yards ~ 1, data = football_data)
+lm_model_null <- lm(log(Yards) ~ 1, data = football_data)
 # summary(lm_model_null)
 ```
 
@@ -190,7 +217,7 @@ Now the full model using all of the predictors will be created. In this full mod
 
 ```{r}
 # Fit the model
-lm_model_full <- lm(Yards ~ ., data = football_data)
+lm_model_full <- lm(log(Yards) ~ ., data = football_data)
 # summary(lm_model_full)
 ```
 
@@ -204,7 +231,7 @@ summary(lm_model_step)
 Running this reduced model yields the following results:
 
 ```{r}
-reduced_model <- lm(Yards ~ Distance + RB + WR + DefendersInTheBox + Temperature + GameHour + DL + LB + YardsFromOwnGoal, data=football_data)
+reduced_model <- lm(log(Yards) ~ Distance + RB + WR + DefendersInTheBox^2 + Temperature + GameHour + DL + LB + YardsFromOwnGoal^2, data=football_data)
 summary(reduced_model)
 ```
 
@@ -215,7 +242,31 @@ old.par = par(mar = c(3, 4, 1, 2))
 plot(reduced_model)
 ```
 
-Based on the plots above, the normality assumption is clearly violated, as the Q-Q Residuals plot shows that the residuals are not normally distributed. This is due to the highly right skewed nature of the response varible and the nature of NFL games. To be more specific, the majority of the carries in NFL games are small gains, while there are few "breakout" plays resulting in large gains. Therefore, it is difficult to predict large gains from a linear model. In addition, different techniques to attempt to normalize the residuals were attempted (such as the log transformation, the squareroot transformation, the inverse trasnformation, box-cox transformation, and cube root transformation), but none of the transformations were able to normalize the residuals. In order to address the issue and possibly improve on model complexity and performance, we are going to move away from the multiple linear regression model and move towards a random forest model using XGBoost.
+Based on the plots above, the normality assumption is not violated, as the Q-Q Residuals plot shows that the residuals are mainly normally distributed. 
+
+In order to gain a better understanding of how these variables affect the predicted yards, scatter plots of the predicted yards versus each of the predictors will be created. However, the only scatter plots that will be synthesized are those that have the three highest t values: Distance, DefendersInTheBox, and YardsFromOwnGoal. 
+
+```{r}
+football_data$predicted_yards <- predict(reduced_model, football_data)
+```
+
+```{r}
+# Scatter plot of predicted yards vs. Distance
+plot(football_data$predicted_yards, football_data$Distance, main = "Predicted Yards vs. Distance", xlab = "Predicted Yards", ylab = "Distance", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+```{r}
+# Scatter plot of predicted yards vs. DefendersInTheBox
+plot(football_data$predicted_yards, football_data$DefendersInTheBox, main = "Predicted Yards vs. DefendersInTheBox", xlab = "Predicted Yards", ylab = "DefendersInTheBox", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+```{r}
+# Scatter plot of predicted yards vs. YardsFromOwnGoal
+plot(football_data$predicted_yards, football_data$YardsFromOwnGoal, main = "Predicted Yards vs. YardsFromOwnGoal", xlab = "Predicted Yards", ylab = "YardsFromOwnGoal", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
 
 # GLM with Gamma Response
 
@@ -244,7 +295,7 @@ Now lets use the step function to find the best model for the data.
 Running this reduced model yields the following results:
 
 ```{r}
-reduced_model <- glm(Yards ~ YardLine + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
+reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
 summary(reduced_model)
 ```
 
