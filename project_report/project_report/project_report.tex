@@ -246,7 +246,7 @@ predominantly pass-oriented league.
     Sports Analytics
 \end{keyword}
 \end{frontmatter}
-    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[boxrule=0pt, frame hidden, sharp corners, borderline west={3pt}{0pt}{shadecolor}, enhanced, interior hidden, breakable]}{\end{tcolorbox}}\fi
+    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[boxrule=0pt, breakable, sharp corners, frame hidden, borderline west={3pt}{0pt}{shadecolor}, interior hidden, enhanced]}{\end{tcolorbox}}\fi
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -701,14 +701,15 @@ the distribution of the response variable.
 \end{figure}
 
 Based on the histogram above, it is apparent that the number of yards is
-skewed to the right. In order to address this issue, we will take the
-log of the yards variable. This will help to normalize the distribution
-of the response variable.
+skewed to the right. In order to address this issue, the Box-Cox
+transformation will be utilized. This will help to normalize the
+distribution of the response variable. The Box-Cox transformation can
+transform non-normal data into normal data.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# Histogram of Yards}
-\FunctionTok{hist}\NormalTok{(}\FunctionTok{log}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards), }\AttributeTok{main =} \StringTok{"Histogram of Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\FunctionTok{library}\NormalTok{(MASS)}
+\NormalTok{lambda\_null }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -720,310 +721,618 @@ of the response variable.
 
 \end{figure}
 
-In addition, lets take a look at some scatterplots of the response
-variable versus some of the predictors. This will help to gain a better
-understanding of the relationship between the response variable and the
-predictors.
+The best lambda value for the Box-Cox tranformation is as follows:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{pairs}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, football\_data}\SpecialCharTok{$}\NormalTok{Distance))}
+\NormalTok{lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_null)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 
+    1, data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.30438 -0.13785 -0.02786  0.12559  0.36373 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.3044     0.0013    1003   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1924 on 21900 degrees of freedom
+\end{verbatim}
+
+Now the full model using all of the predictors will be created. In this
+full model, there will be 0 interactions between the predictors. The
+same process using the Box-Cox transformation will be used to normalize
+the distribution of the response variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data))}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-5-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-7-1.pdf}
 
 }
 
 \end{figure}
 
-The first model that will be synthesized has only an intercept and no
-predictors.
+The best lambda value for the Box-Cox tranformation is as follows:
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
-\CommentTok{\# summary(lm\_model\_null)}
+\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
 \end{Highlighting}
 \end{Shaded}
 
-Now the full model using all of the predictors will be created. In this
-full model, there will be 0 interactions between the predictors.
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# Fit the model}
-\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
-\CommentTok{\# summary(lm\_model\_full)}
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
+    ., data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.47321 -0.13673  0.00441  0.13919  0.47383 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 1.538e+00  4.252e-01   3.617 0.000299 ***
+Quarter                     1.967e-04  1.126e-03   0.175 0.861252    
+Down                        4.977e-03  2.256e-03   2.206 0.027365 *  
+Distance                    3.810e-03  4.147e-04   9.186  < 2e-16 ***
+OffenseFormationEMPTY       2.472e-02  1.924e-01   0.129 0.897743    
+OffenseFormationI_FORM     -1.687e-02  1.882e-01  -0.090 0.928585    
+OffenseFormationJUMBO      -1.033e-01  1.885e-01  -0.548 0.583848    
+OffenseFormationPISTOL     -1.455e-02  1.883e-01  -0.077 0.938427    
+OffenseFormationSHOTGUN    -2.890e-02  1.882e-01  -0.154 0.877950    
+OffenseFormationSINGLEBACK -1.774e-02  1.882e-01  -0.094 0.924890    
+OffenseFormationUNKNOWN    -4.250e-02  2.104e-01  -0.202 0.839923    
+OffenseFormationWILDCAT     9.191e-04  1.898e-01   0.005 0.996136    
+RB                         -2.884e-03  5.899e-03  -0.489 0.624916    
+TE                         -6.842e-04  4.914e-03  -0.139 0.889284    
+WR                         -6.221e-03  5.009e-03  -1.242 0.214249    
+DefendersInTheBox          -2.753e-02  1.957e-03 -14.068  < 2e-16 ***
+Week                       -2.674e-04  3.456e-04  -0.774 0.439106    
+GameWeathernone             7.031e-03  4.258e-03   1.651 0.098726 .  
+GameWeatherovercast        -8.048e-04  3.130e-03  -0.257 0.797075    
+GameWeatherrain            -5.022e-03  6.343e-03  -0.792 0.428550    
+GameWeathersnow            -1.267e-02  1.845e-02  -0.687 0.492132    
+Temperature                -3.322e-04  1.013e-04  -3.279 0.001045 ** 
+Humidity                   -2.549e-05  6.333e-05  -0.402 0.687361    
+WindSpeed                  -5.975e-06  3.116e-04  -0.019 0.984703    
+WindDirectionnone          -1.113e-02  8.175e-03  -1.361 0.173435    
+WindDirectionnorth         -5.339e-03  9.551e-03  -0.559 0.576202    
+WindDirectionnorth east    -8.907e-03  8.227e-03  -1.083 0.278988    
+WindDirectionnorth west    -5.889e-03  8.309e-03  -0.709 0.478510    
+WindDirectionsouth         -8.759e-03  9.043e-03  -0.969 0.332759    
+WindDirectionsouth east    -5.197e-03  8.566e-03  -0.607 0.544061    
+WindDirectionsouth west    -6.548e-03  8.069e-03  -0.811 0.417105    
+WindDirectionwest          -5.602e-03  9.642e-03  -0.581 0.561220    
+GameHour                    5.532e-04  2.930e-04   1.888 0.059064 .  
+DL                         -2.472e-03  3.461e-02  -0.071 0.943047    
+LB                         -3.311e-03  3.469e-02  -0.095 0.923948    
+BL                          4.935e-03  3.469e-02   0.142 0.886864    
+YardsFromOwnGoal           -4.004e-04  5.338e-05  -7.500 6.65e-14 ***
+ScoreDelta                 -2.002e-04  1.209e-04  -1.656 0.097793 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1881 on 21584 degrees of freedom
+  (279 observations deleted due to missingness)
+Multiple R-squared:  0.04689,   Adjusted R-squared:  0.04525 
+F-statistic:  28.7 on 37 and 21584 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Based on the results of the full model, the model shows which predictors
+are statistically significant. The most significant predictors are
+Distance, DefendersInTheBox, and YardsFromOwnGoal. Creating scatter
+plots of the response variable versus each of these predictors will help
+to gain a better understanding of how these variables affect the
+predicted yards.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. Distance}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-10-1.pdf}
+
+}
+
+\end{figure}
+
+Looking at this scatter plot of Yards vs Distance, there appears to only
+be a sinusoial relationship between the two variables. Therefore, when a
+reduced model is created, a sine function will be used to model the
+relationship between the two variables.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. Defenders In The Box}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Yards vs. Defenders In The Box"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Defenders In The Box"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-11-1.pdf}
+
+}
+
+\end{figure}
+
+Looking at this scatter plot of Yards vs Defenders In The Box, there
+appears to be a quadratic function relationship between the two
+variables. Therefore, when a reduced model is created, the Defenders In
+The Box variable will be squared in order to capture this relationship
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. YardsFromOwnGoal}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Yards vs. Yards From Own Goal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Yards From Own Goal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-12-1.pdf}
+
+}
+
+\end{figure}
+
+The scatterplot of Yards vs Yards From Own Goal shows that there is a
+linear relationship between the two variables. Therefore, when a reduced
+model is created, the Yards From Own Goal variable will not be changed
+since the model is already capturing this linear relationship.
+
+In order to capture these relationships between variables, a new, full
+model will be synthesized. This model will include the Distance variable
+with a sine function and the Defenders In The Box variable squared.
+However, the Box-Cox transformation will need to be run again.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-13-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(lambda\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Length Class  Mode   
+x 100    -none- numeric
+y 100    -none- numeric
+\end{verbatim}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
+    Quarter + Down + sin(Distance) + OffenseFormation + RB + 
+        TE + WR + DefendersInTheBox^2 + Week + GameWeather + 
+        Temperature + Humidity + WindSpeed + WindDirection + 
+        GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, 
+    data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.42973 -0.13769  0.00597  0.13972  0.46621 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 1.577e+00  4.257e-01   3.703 0.000213 ***
+Quarter                     4.477e-04  1.127e-03   0.397 0.691071    
+Down                        7.903e-04  2.274e-03   0.348 0.728177    
+sin(Distance)              -1.343e-02  2.572e-03  -5.223 1.78e-07 ***
+OffenseFormationEMPTY       1.855e-02  1.926e-01   0.096 0.923277    
+OffenseFormationI_FORM     -1.959e-02  1.885e-01  -0.104 0.917217    
+OffenseFormationJUMBO      -1.058e-01  1.887e-01  -0.560 0.575249    
+OffenseFormationPISTOL     -1.803e-02  1.885e-01  -0.096 0.923833    
+OffenseFormationSHOTGUN    -3.093e-02  1.884e-01  -0.164 0.869618    
+OffenseFormationSINGLEBACK -2.134e-02  1.884e-01  -0.113 0.909848    
+OffenseFormationUNKNOWN    -4.476e-02  2.107e-01  -0.212 0.831757    
+OffenseFormationWILDCAT    -2.276e-03  1.901e-01  -0.012 0.990445    
+RB                         -3.043e-03  5.907e-03  -0.515 0.606408    
+TE                         -2.328e-04  4.921e-03  -0.047 0.962266    
+WR                         -6.469e-03  5.016e-03  -1.290 0.197211    
+DefendersInTheBox          -2.954e-02  1.942e-03 -15.214  < 2e-16 ***
+Week                       -2.368e-04  3.461e-04  -0.684 0.493767    
+GameWeathernone             7.371e-03  4.264e-03   1.729 0.083870 .  
+GameWeatherovercast        -7.788e-04  3.134e-03  -0.248 0.803755    
+GameWeatherrain            -4.390e-03  6.351e-03  -0.691 0.489464    
+GameWeathersnow            -1.081e-02  1.847e-02  -0.585 0.558466    
+Temperature                -3.118e-04  1.014e-04  -3.074 0.002115 ** 
+Humidity                   -3.784e-05  6.340e-05  -0.597 0.550599    
+WindSpeed                   5.225e-05  3.120e-04   0.167 0.867002    
+WindDirectionnone          -1.063e-02  8.185e-03  -1.298 0.194240    
+WindDirectionnorth         -4.787e-03  9.564e-03  -0.501 0.616690    
+WindDirectionnorth east    -8.309e-03  8.238e-03  -1.009 0.313158    
+WindDirectionnorth west    -5.569e-03  8.320e-03  -0.669 0.503289    
+WindDirectionsouth         -8.639e-03  9.055e-03  -0.954 0.340025    
+WindDirectionsouth east    -4.528e-03  8.577e-03  -0.528 0.597521    
+WindDirectionsouth west    -6.451e-03  8.079e-03  -0.798 0.424624    
+WindDirectionwest          -4.237e-03  9.653e-03  -0.439 0.660729    
+GameHour                    4.356e-04  2.931e-04   1.486 0.137242    
+DL                         -1.601e-03  3.465e-02  -0.046 0.963145    
+LB                         -1.855e-03  3.473e-02  -0.053 0.957403    
+BL                          6.786e-03  3.473e-02   0.195 0.845108    
+YardsFromOwnGoal           -4.841e-04  5.231e-05  -9.256  < 2e-16 ***
+ScoreDelta                 -2.135e-04  1.211e-04  -1.763 0.077874 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1883 on 21584 degrees of freedom
+  (279 observations deleted due to missingness)
+Multiple R-squared:  0.04437,   Adjusted R-squared:  0.04273 
+F-statistic: 27.08 on 37 and 21584 DF,  p-value: < 2.2e-16
+\end{verbatim}
 
 Now lets use the step function to find the best model for the data.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{lm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(lm\_model\_full, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
+\NormalTok{lm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{invisible}\NormalTok{(}\FunctionTok{step}\NormalTok{(lm\_model\_full, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-Start:  AIC=-17699.97
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    TE + WR + DefendersInTheBox + Week + GameWeather + Temperature + 
+Start:  AIC=-72165.49
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + TE + WR + 
+    DefendersInTheBox^2 + Week + GameWeather + Temperature + 
     Humidity + WindSpeed + WindDirection + GameHour + DL + LB + 
     BL + YardsFromOwnGoal + ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- WindDirection      8     1.415 9504.2 -17713
-- GameWeather        4     1.958 9504.8 -17704
-- TE                 1     0.001 9502.8 -17702
-- LB                 1     0.002 9502.8 -17702
-- WindSpeed          1     0.002 9502.8 -17702
-- DL                 1     0.003 9502.8 -17702
-- Quarter            1     0.029 9502.8 -17702
-- BL                 1     0.039 9502.8 -17702
-- RB                 1     0.050 9502.9 -17702
-- Humidity           1     0.072 9502.9 -17702
-- Week               1     0.252 9503.1 -17701
-- WR                 1     0.599 9503.4 -17701
-<none>                           9502.8 -17700
-- ScoreDelta         1     1.144 9504.0 -17699
-- GameHour           1     1.598 9504.4 -17698
-- Down               1     1.864 9504.7 -17698
-- Temperature        1     4.896 9507.7 -17691
-- YardsFromOwnGoal   1    25.906 9528.7 -17643
-- Distance           1    35.557 9538.4 -17621
-- OffenseFormation   8    46.438 9549.2 -17611
-- DefendersInTheBox  1    86.488 9589.3 -17506
+- WindDirection      8    0.1190 765.49 -72178
+- GameWeather        4    0.1523 765.52 -72169
+- DL                 1    0.0001 765.37 -72167
+- TE                 1    0.0001 765.37 -72167
+- LB                 1    0.0001 765.37 -72167
+- WindSpeed          1    0.0010 765.37 -72167
+- BL                 1    0.0014 765.37 -72167
+- Down               1    0.0043 765.37 -72167
+- Quarter            1    0.0056 765.37 -72167
+- RB                 1    0.0094 765.38 -72167
+- Humidity           1    0.0126 765.38 -72167
+- Week               1    0.0166 765.38 -72167
+- WR                 1    0.0590 765.43 -72166
+<none>                           765.37 -72165
+- GameHour           1    0.0783 765.45 -72165
+- ScoreDelta         1    0.1102 765.48 -72164
+- Temperature        1    0.3351 765.70 -72158
+- sin(Distance)      1    0.9674 766.33 -72140
+- OffenseFormation   8    2.9885 768.36 -72097
+- YardsFromOwnGoal   1    3.0380 768.41 -72082
+- DefendersInTheBox  1    8.2081 773.58 -71937
 
-Step:  AIC=-17712.75
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    TE + WR + DefendersInTheBox + Week + GameWeather + Temperature + 
-    Humidity + WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
-    ScoreDelta
-
-                    Df Sum of Sq    RSS    AIC
-- GameWeather        4     1.517 9505.7 -17717
-- TE                 1     0.000 9504.2 -17715
-- LB                 1     0.001 9504.2 -17715
-- DL                 1     0.003 9504.2 -17715
-- Humidity           1     0.010 9504.2 -17715
-- Quarter            1     0.029 9504.2 -17715
-- BL                 1     0.040 9504.3 -17715
-- RB                 1     0.048 9504.3 -17715
-- WindSpeed          1     0.129 9504.4 -17714
-- Week               1     0.186 9504.4 -17714
-- WR                 1     0.618 9504.8 -17713
-<none>                           9504.2 -17713
-- ScoreDelta         1     1.116 9505.3 -17712
-- GameHour           1     1.610 9505.8 -17711
-- Down               1     1.826 9506.0 -17711
-- Temperature        1     4.576 9508.8 -17704
-- YardsFromOwnGoal   1    25.791 9530.0 -17656
-- Distance           1    35.502 9539.7 -17634
-- OffenseFormation   8    46.662 9550.9 -17623
-- DefendersInTheBox  1    86.611 9590.8 -17519
-
-Step:  AIC=-17717.3
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    TE + WR + DefendersInTheBox + Week + Temperature + Humidity + 
+Step:  AIC=-72178.13
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + TE + WR + 
+    DefendersInTheBox + Week + GameWeather + Temperature + Humidity + 
     WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
     ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- TE                 1     0.000 9505.7 -17719
-- WindSpeed          1     0.001 9505.7 -17719
-- LB                 1     0.002 9505.7 -17719
-- DL                 1     0.003 9505.7 -17719
-- Quarter            1     0.027 9505.8 -17719
-- RB                 1     0.039 9505.8 -17719
-- BL                 1     0.042 9505.8 -17719
-- Week               1     0.166 9505.9 -17719
-- Humidity           1     0.431 9506.2 -17718
-- WR                 1     0.648 9506.4 -17718
-<none>                           9505.7 -17717
-- ScoreDelta         1     1.085 9506.8 -17717
-- GameHour           1     1.624 9507.4 -17716
-- Down               1     1.800 9507.5 -17715
-- Temperature        1     4.231 9510.0 -17710
-- YardsFromOwnGoal   1    25.718 9531.5 -17661
-- Distance           1    35.409 9541.1 -17639
-- OffenseFormation   8    46.637 9552.4 -17628
-- DefendersInTheBox  1    86.888 9592.6 -17523
+- GameWeather        4    0.1167 765.60 -72183
+- DL                 1    0.0001 765.49 -72180
+- LB                 1    0.0001 765.49 -72180
+- TE                 1    0.0001 765.49 -72180
+- BL                 1    0.0014 765.49 -72180
+- Down               1    0.0037 765.49 -72180
+- Humidity           1    0.0042 765.49 -72180
+- Quarter            1    0.0055 765.49 -72180
+- RB                 1    0.0090 765.50 -72180
+- Week               1    0.0116 765.50 -72180
+- WindSpeed          1    0.0137 765.50 -72180
+- WR                 1    0.0605 765.55 -72178
+<none>                           765.49 -72178
+- GameHour           1    0.0790 765.57 -72178
+- ScoreDelta         1    0.1080 765.59 -72177
+- Temperature        1    0.3070 765.79 -72171
+- sin(Distance)      1    0.9619 766.45 -72153
+- OffenseFormation   8    3.0060 768.49 -72109
+- YardsFromOwnGoal   1    3.0296 768.52 -72095
+- DefendersInTheBox  1    8.2167 773.70 -71949
 
-Step:  AIC=-17719.3
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    WR + DefendersInTheBox + Week + Temperature + Humidity + 
-    WindSpeed + GameHour + DL + LB + BL + YardsFromOwnGoal + 
-    ScoreDelta
-
-                    Df Sum of Sq    RSS    AIC
-- WindSpeed          1     0.001 9505.7 -17721
-- LB                 1     0.002 9505.7 -17721
-- DL                 1     0.003 9505.7 -17721
-- Quarter            1     0.027 9505.8 -17721
-- BL                 1     0.042 9505.8 -17721
-- RB                 1     0.083 9505.8 -17721
-- Week               1     0.167 9505.9 -17721
-- Humidity           1     0.433 9506.2 -17720
-<none>                           9505.7 -17719
-- ScoreDelta         1     1.085 9506.8 -17719
-- GameHour           1     1.624 9507.4 -17718
-- Down               1     1.801 9507.5 -17717
-- WR                 1     2.395 9508.1 -17716
-- Temperature        1     4.232 9510.0 -17712
-- YardsFromOwnGoal   1    25.728 9531.5 -17663
-- Distance           1    35.419 9541.2 -17641
-- OffenseFormation   8    48.132 9553.9 -17626
-- DefendersInTheBox  1    87.018 9592.8 -17524
-
-Step:  AIC=-17721.3
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    WR + DefendersInTheBox + Week + Temperature + Humidity + 
+Step:  AIC=-72182.83
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + TE + WR + 
+    DefendersInTheBox + Week + Temperature + Humidity + WindSpeed + 
     GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- LB                 1     0.002 9505.7 -17723
-- DL                 1     0.003 9505.7 -17723
-- Quarter            1     0.027 9505.8 -17723
-- BL                 1     0.042 9505.8 -17723
-- RB                 1     0.083 9505.8 -17723
-- Week               1     0.166 9505.9 -17723
-- Humidity           1     0.462 9506.2 -17722
-<none>                           9505.7 -17721
-- ScoreDelta         1     1.086 9506.8 -17721
-- GameHour           1     1.624 9507.4 -17720
-- Down               1     1.800 9507.5 -17719
-- WR                 1     2.395 9508.1 -17718
-- Temperature        1     4.288 9510.0 -17714
-- YardsFromOwnGoal   1    25.730 9531.5 -17665
-- Distance           1    35.433 9541.2 -17643
-- OffenseFormation   8    48.139 9553.9 -17628
-- DefendersInTheBox  1    87.022 9592.8 -17526
+- DL                 1    0.0001 765.60 -72185
+- WindSpeed          1    0.0001 765.60 -72185
+- LB                 1    0.0001 765.60 -72185
+- TE                 1    0.0002 765.60 -72185
+- BL                 1    0.0015 765.60 -72185
+- Down               1    0.0036 765.61 -72185
+- Quarter            1    0.0054 765.61 -72185
+- RB                 1    0.0078 765.61 -72185
+- Week               1    0.0105 765.61 -72185
+- Humidity           1    0.0541 765.66 -72183
+- WR                 1    0.0624 765.67 -72183
+<none>                           765.60 -72183
+- GameHour           1    0.0797 765.68 -72183
+- ScoreDelta         1    0.1043 765.71 -72182
+- Temperature        1    0.2870 765.89 -72177
+- sin(Distance)      1    0.9577 766.56 -72158
+- OffenseFormation   8    3.0075 768.61 -72114
+- YardsFromOwnGoal   1    3.0221 768.63 -72100
+- DefendersInTheBox  1    8.2362 773.84 -71953
 
-Step:  AIC=-17723.29
-log(Yards) ~ Quarter + Down + Distance + OffenseFormation + RB + 
-    WR + DefendersInTheBox + Week + Temperature + Humidity + 
-    GameHour + DL + BL + YardsFromOwnGoal + ScoreDelta
+Step:  AIC=-72184.83
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + TE + WR + 
+    DefendersInTheBox + Week + Temperature + Humidity + WindSpeed + 
+    GameHour + LB + BL + YardsFromOwnGoal + ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- Quarter            1     0.027 9505.8 -17725
-- RB                 1     0.083 9505.8 -17725
-- DL                 1     0.109 9505.8 -17725
-- Week               1     0.166 9505.9 -17725
-- Humidity           1     0.462 9506.2 -17724
-<none>                           9505.7 -17723
-- ScoreDelta         1     1.084 9506.8 -17723
-- GameHour           1     1.627 9507.4 -17722
-- Down               1     1.801 9507.5 -17721
-- WR                 1     2.394 9508.1 -17720
-- BL                 1     3.354 9509.1 -17718
-- Temperature        1     4.293 9510.0 -17716
-- YardsFromOwnGoal   1    25.750 9531.5 -17667
-- Distance           1    35.442 9541.2 -17645
-- OffenseFormation   8    48.457 9554.2 -17629
-- DefendersInTheBox  1    87.158 9592.9 -17528
+- WindSpeed          1    0.0001 765.60 -72187
+- TE                 1    0.0002 765.60 -72187
+- LB                 1    0.0020 765.61 -72187
+- Down               1    0.0036 765.61 -72187
+- Quarter            1    0.0054 765.61 -72187
+- RB                 1    0.0078 765.61 -72187
+- Week               1    0.0105 765.61 -72187
+- Humidity           1    0.0541 765.66 -72185
+- WR                 1    0.0625 765.67 -72185
+<none>                           765.60 -72185
+- GameHour           1    0.0797 765.68 -72185
+- ScoreDelta         1    0.1045 765.71 -72184
+- BL                 1    0.2507 765.85 -72180
+- Temperature        1    0.2869 765.89 -72179
+- sin(Distance)      1    0.9577 766.56 -72160
+- OffenseFormation   8    3.0202 768.62 -72116
+- YardsFromOwnGoal   1    3.0230 768.63 -72102
+- DefendersInTheBox  1    8.2564 773.86 -71955
 
-Step:  AIC=-17725.23
-log(Yards) ~ Down + Distance + OffenseFormation + RB + WR + DefendersInTheBox + 
-    Week + Temperature + Humidity + GameHour + DL + BL + YardsFromOwnGoal + 
+Step:  AIC=-72186.83
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + TE + WR + 
+    DefendersInTheBox + Week + Temperature + Humidity + GameHour + 
+    LB + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- TE                 1    0.0002 765.60 -72189
+- LB                 1    0.0020 765.61 -72189
+- Down               1    0.0036 765.61 -72189
+- Quarter            1    0.0054 765.61 -72189
+- RB                 1    0.0078 765.61 -72189
+- Week               1    0.0106 765.61 -72189
+- Humidity           1    0.0560 765.66 -72187
+- WR                 1    0.0625 765.67 -72187
+<none>                           765.60 -72187
+- GameHour           1    0.0797 765.68 -72187
+- ScoreDelta         1    0.1045 765.71 -72186
+- BL                 1    0.2507 765.85 -72182
+- Temperature        1    0.2927 765.90 -72181
+- sin(Distance)      1    0.9578 766.56 -72162
+- OffenseFormation   8    3.0202 768.62 -72118
+- YardsFromOwnGoal   1    3.0246 768.63 -72104
+- DefendersInTheBox  1    8.2563 773.86 -71957
+
+Step:  AIC=-72188.82
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + WR + DefendersInTheBox + 
+    Week + Temperature + Humidity + GameHour + LB + BL + YardsFromOwnGoal + 
     ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- RB                 1     0.085 9505.9 -17727
-- DL                 1     0.109 9505.9 -17727
-- Week               1     0.168 9505.9 -17727
-- Humidity           1     0.464 9506.2 -17726
-<none>                           9505.8 -17725
-- ScoreDelta         1     1.071 9506.8 -17725
-- GameHour           1     1.618 9507.4 -17724
-- Down               1     1.819 9507.6 -17723
-- WR                 1     2.409 9508.2 -17722
-- BL                 1     3.370 9509.1 -17720
-- Temperature        1     4.297 9510.1 -17718
-- YardsFromOwnGoal   1    25.738 9531.5 -17669
-- Distance           1    35.537 9541.3 -17646
-- OffenseFormation   8    48.477 9554.2 -17631
-- DefendersInTheBox  1    87.202 9593.0 -17530
+- LB                 1    0.0020 765.61 -72191
+- Down               1    0.0036 765.61 -72191
+- Quarter            1    0.0054 765.61 -72191
+- Week               1    0.0105 765.61 -72191
+- RB                 1    0.0125 765.62 -72190
+- Humidity           1    0.0559 765.66 -72189
+<none>                           765.60 -72189
+- GameHour           1    0.0796 765.68 -72189
+- ScoreDelta         1    0.1047 765.71 -72188
+- WR                 1    0.2064 765.81 -72185
+- BL                 1    0.2506 765.85 -72184
+- Temperature        1    0.2929 765.90 -72183
+- sin(Distance)      1    0.9577 766.56 -72164
+- OffenseFormation   8    3.1049 768.71 -72117
+- YardsFromOwnGoal   1    3.0249 768.63 -72106
+- DefendersInTheBox  1    8.2660 773.87 -71959
 
-Step:  AIC=-17727.04
-log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
-    Week + Temperature + Humidity + GameHour + DL + BL + YardsFromOwnGoal + 
-    ScoreDelta
-
-                    Df Sum of Sq    RSS    AIC
-- DL                 1     0.106 9506.0 -17729
-- Week               1     0.169 9506.0 -17729
-- Humidity           1     0.450 9506.3 -17728
-<none>                           9505.9 -17727
-- ScoreDelta         1     1.061 9506.9 -17727
-- GameHour           1     1.617 9507.5 -17725
-- Down               1     1.832 9507.7 -17725
-- WR                 1     2.333 9508.2 -17724
-- BL                 1     3.338 9509.2 -17721
-- Temperature        1     4.302 9510.2 -17719
-- YardsFromOwnGoal   1    25.798 9531.6 -17670
-- Distance           1    35.623 9541.5 -17648
-- OffenseFormation   8    48.393 9554.2 -17633
-- DefendersInTheBox  1    87.237 9593.1 -17532
-
-Step:  AIC=-17728.8
-log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
+Step:  AIC=-72190.77
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    Down + sin(Distance) + OffenseFormation + RB + WR + DefendersInTheBox + 
     Week + Temperature + Humidity + GameHour + BL + YardsFromOwnGoal + 
     ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- Week               1     0.147 9506.1 -17730
-- Humidity           1     0.457 9506.4 -17730
-<none>                           9506.0 -17729
-- ScoreDelta         1     1.039 9507.0 -17728
-- GameHour           1     1.618 9507.6 -17727
-- Down               1     1.810 9507.8 -17727
-- WR                 1     2.313 9508.3 -17726
-- BL                 1     3.242 9509.2 -17723
-- Temperature        1     4.211 9510.2 -17721
-- YardsFromOwnGoal   1    25.771 9531.7 -17672
-- Distance           1    35.525 9541.5 -17650
-- OffenseFormation   8    48.294 9554.3 -17635
-- DefendersInTheBox  1    87.147 9593.1 -17534
+- Down               1    0.0036 765.61 -72193
+- Quarter            1    0.0054 765.61 -72193
+- Week               1    0.0097 765.62 -72192
+- RB                 1    0.0124 765.62 -72192
+- Humidity           1    0.0562 765.66 -72191
+<none>                           765.61 -72191
+- GameHour           1    0.0797 765.69 -72191
+- ScoreDelta         1    0.1038 765.71 -72190
+- WR                 1    0.2056 765.81 -72187
+- Temperature        1    0.2910 765.90 -72185
+- BL                 1    0.2955 765.90 -72184
+- sin(Distance)      1    0.9574 766.56 -72166
+- OffenseFormation   8    3.1036 768.71 -72119
+- YardsFromOwnGoal   1    3.0231 768.63 -72108
+- DefendersInTheBox  1    8.2755 773.88 -71960
 
-Step:  AIC=-17730.46
-log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
-    Temperature + Humidity + GameHour + BL + YardsFromOwnGoal + 
+Step:  AIC=-72192.67
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + 
+    sin(Distance) + OffenseFormation + RB + WR + DefendersInTheBox + 
+    Week + Temperature + Humidity + GameHour + BL + YardsFromOwnGoal + 
     ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-- Humidity           1     0.410 9506.5 -17732
-<none>                           9506.1 -17730
-- ScoreDelta         1     1.066 9507.2 -17730
-- GameHour           1     1.614 9507.7 -17729
-- Down               1     1.798 9507.9 -17728
-- WR                 1     2.352 9508.5 -17727
-- BL                 1     3.240 9509.3 -17725
-- Temperature        1     5.340 9511.4 -17720
-- YardsFromOwnGoal   1    25.706 9531.8 -17674
-- Distance           1    35.518 9541.6 -17652
-- OffenseFormation   8    48.268 9554.4 -17637
-- DefendersInTheBox  1    87.446 9593.6 -17534
+- Quarter            1    0.0057 765.61 -72195
+- Week               1    0.0096 765.62 -72194
+- RB                 1    0.0125 765.62 -72194
+- Humidity           1    0.0563 765.67 -72193
+<none>                           765.61 -72193
+- GameHour           1    0.0780 765.69 -72192
+- ScoreDelta         1    0.1043 765.71 -72192
+- WR                 1    0.2080 765.82 -72189
+- Temperature        1    0.2909 765.90 -72186
+- BL                 1    0.3023 765.91 -72186
+- sin(Distance)      1    1.1972 766.81 -72161
+- OffenseFormation   8    3.1001 768.71 -72121
+- YardsFromOwnGoal   1    3.0230 768.63 -72109
+- DefendersInTheBox  1    8.2775 773.89 -71962
 
-Step:  AIC=-17731.53
-log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox + 
-    Temperature + GameHour + BL + YardsFromOwnGoal + ScoreDelta
+Step:  AIC=-72194.51
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ sin(Distance) + 
+    OffenseFormation + RB + WR + DefendersInTheBox + Week + Temperature + 
+    Humidity + GameHour + BL + YardsFromOwnGoal + ScoreDelta
 
                     Df Sum of Sq    RSS    AIC
-<none>                           9506.5 -17732
-- ScoreDelta         1     1.005 9507.5 -17731
-- GameHour           1     1.594 9508.1 -17730
-- Down               1     1.826 9508.3 -17729
-- WR                 1     2.308 9508.8 -17728
-- BL                 1     3.234 9509.8 -17726
-- Temperature        1     4.954 9511.5 -17722
-- YardsFromOwnGoal   1    25.767 9532.3 -17675
-- Distance           1    35.677 9542.2 -17652
-- OffenseFormation   8    48.495 9555.0 -17638
-- DefendersInTheBox  1    87.145 9593.7 -17536
+- Week               1    0.0098 765.62 -72196
+- RB                 1    0.0128 765.63 -72196
+- Humidity           1    0.0566 765.67 -72195
+<none>                           765.61 -72195
+- GameHour           1    0.0770 765.69 -72194
+- ScoreDelta         1    0.1023 765.72 -72194
+- WR                 1    0.2101 765.82 -72191
+- Temperature        1    0.2913 765.91 -72188
+- BL                 1    0.3048 765.92 -72188
+- sin(Distance)      1    1.1968 766.81 -72163
+- OffenseFormation   8    3.1018 768.72 -72123
+- YardsFromOwnGoal   1    3.0176 768.63 -72111
+- DefendersInTheBox  1    8.2741 773.89 -71964
+
+Step:  AIC=-72196.23
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ sin(Distance) + 
+    OffenseFormation + RB + WR + DefendersInTheBox + Temperature + 
+    Humidity + GameHour + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- RB                 1    0.0129 765.64 -72198
+- Humidity           1    0.0525 765.68 -72197
+<none>                           765.62 -72196
+- GameHour           1    0.0768 765.70 -72196
+- ScoreDelta         1    0.1045 765.73 -72195
+- WR                 1    0.2132 765.84 -72192
+- BL                 1    0.3046 765.93 -72190
+- Temperature        1    0.3711 766.00 -72188
+- sin(Distance)      1    1.1993 766.82 -72164
+- OffenseFormation   8    3.1001 768.72 -72125
+- YardsFromOwnGoal   1    3.0118 768.64 -72113
+- DefendersInTheBox  1    8.2992 773.92 -71965
+
+Step:  AIC=-72197.86
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ sin(Distance) + 
+    OffenseFormation + WR + DefendersInTheBox + Temperature + 
+    Humidity + GameHour + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+- Humidity           1    0.0507 765.69 -72198
+<none>                           765.64 -72198
+- GameHour           1    0.0767 765.71 -72198
+- ScoreDelta         1    0.1034 765.74 -72197
+- WR                 1    0.2002 765.84 -72194
+- BL                 1    0.3010 765.94 -72191
+- Temperature        1    0.3715 766.01 -72189
+- sin(Distance)      1    1.2007 766.84 -72166
+- OffenseFormation   8    3.0880 768.73 -72127
+- YardsFromOwnGoal   1    3.0219 768.66 -72115
+- DefendersInTheBox  1    8.2919 773.93 -71967
+
+Step:  AIC=-72198.43
+(Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ sin(Distance) + 
+    OffenseFormation + WR + DefendersInTheBox + Temperature + 
+    GameHour + BL + YardsFromOwnGoal + ScoreDelta
+
+                    Df Sum of Sq    RSS    AIC
+<none>                           765.69 -72198
+- GameHour           1    0.0750 765.76 -72198
+- ScoreDelta         1    0.0968 765.78 -72198
+- WR                 1    0.1959 765.88 -72195
+- BL                 1    0.3006 765.99 -72192
+- Temperature        1    0.3305 766.02 -72191
+- sin(Distance)      1    1.1971 766.89 -72167
+- OffenseFormation   8    3.1087 768.80 -72127
+- YardsFromOwnGoal   1    3.0339 768.72 -72115
+- DefendersInTheBox  1    8.2601 773.95 -71968
 \end{verbatim}
 
 \begin{Shaded}
@@ -1035,81 +1344,109 @@ log(Yards) ~ Down + Distance + OffenseFormation + WR + DefendersInTheBox +
 \begin{verbatim}
 
 Call:
-lm(formula = log(Yards) ~ Down + Distance + OffenseFormation + 
-    WR + DefendersInTheBox + Temperature + GameHour + BL + YardsFromOwnGoal + 
-    ScoreDelta, data = football_data)
+lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
+    sin(Distance) + OffenseFormation + WR + DefendersInTheBox + 
+        Temperature + GameHour + BL + YardsFromOwnGoal + ScoreDelta, 
+    data = football_data)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--1.70141 -0.45056  0.06292  0.50516  1.57950 
+-0.41862 -0.13809  0.00558  0.13957  0.46668 
 
 Coefficients:
                              Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                 1.8300909  0.6691300   2.735 0.006243 ** 
-Down                        0.0161672  0.0079365   2.037 0.041657 *  
-Distance                    0.0131352  0.0014588   9.004  < 2e-16 ***
-OffenseFormationEMPTY       0.0436278  0.6783426   0.064 0.948720    
-OffenseFormationI_FORM     -0.1140737  0.6635919  -0.172 0.863515    
-OffenseFormationJUMBO      -0.4506772  0.6645768  -0.678 0.497689    
-OffenseFormationPISTOL     -0.1008327  0.6639361  -0.152 0.879290    
-OffenseFormationSHOTGUN    -0.1508435  0.6634845  -0.227 0.820153    
-OffenseFormationSINGLEBACK -0.1118227  0.6634980  -0.169 0.866164    
-OffenseFormationUNKNOWN    -0.1587977  0.7417972  -0.214 0.830493    
-OffenseFormationWILDCAT    -0.0488034  0.6691285  -0.073 0.941858    
-WR                         -0.0205143  0.0089567  -2.290 0.022009 *  
-DefendersInTheBox          -0.0962724  0.0068411 -14.073  < 2e-16 ***
-Temperature                -0.0008836  0.0002634  -3.355 0.000794 ***
-GameHour                    0.0019662  0.0010329   1.904 0.056986 .  
-BL                          0.0286437  0.0105657   2.711 0.006713 ** 
-YardsFromOwnGoal           -0.0014363  0.0001877  -7.652 2.06e-14 ***
-ScoreDelta                 -0.0006387  0.0004226  -1.511 0.130711    
+(Intercept)                 1.539e+00  1.897e-01   8.114 5.18e-16 ***
+sin(Distance)              -1.295e-02  2.229e-03  -5.812 6.26e-09 ***
+OffenseFormationEMPTY       1.762e-02  1.925e-01   0.092  0.92706    
+OffenseFormationI_FORM     -2.276e-02  1.883e-01  -0.121  0.90379    
+OffenseFormationJUMBO      -1.084e-01  1.886e-01  -0.575  0.56552    
+OffenseFormationPISTOL     -2.057e-02  1.884e-01  -0.109  0.91305    
+OffenseFormationSHOTGUN    -3.253e-02  1.883e-01  -0.173  0.86282    
+OffenseFormationSINGLEBACK -2.264e-02  1.883e-01  -0.120  0.90430    
+OffenseFormationUNKNOWN    -4.777e-02  2.105e-01  -0.227  0.82048    
+OffenseFormationWILDCAT    -5.954e-03  1.899e-01  -0.031  0.97499    
+WR                         -5.969e-03  2.539e-03  -2.351  0.01874 *  
+DefendersInTheBox          -2.938e-02  1.924e-03 -15.267  < 2e-16 ***
+Temperature                -2.282e-04  7.473e-05  -3.054  0.00226 ** 
+GameHour                    4.255e-04  2.924e-04   1.455  0.14563    
+BL                          8.703e-03  2.988e-03   2.912  0.00359 ** 
+YardsFromOwnGoal           -4.821e-04  5.210e-05  -9.252  < 2e-16 ***
+ScoreDelta                 -1.982e-04  1.199e-04  -1.652  0.09847 .  
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.6634 on 21604 degrees of freedom
+Residual standard error: 0.1883 on 21605 degrees of freedom
   (279 observations deleted due to missingness)
-Multiple R-squared:  0.04789,   Adjusted R-squared:  0.04714 
-F-statistic: 63.92 on 17 and 21604 DF,  p-value: < 2.2e-16
+Multiple R-squared:  0.04397,   Adjusted R-squared:  0.04326 
+F-statistic:  62.1 on 16 and 21605 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-Running this reduced model yields the following results:
+This new reduced model needs to be run similar to that of the previous
+models utilizing the Box-Cox transformation.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\FunctionTok{log}\NormalTok{(Yards) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, }\AttributeTok{data=}\NormalTok{football\_data)}
-\FunctionTok{summary}\NormalTok{(reduced\_model)}
+\NormalTok{lambda\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-17-1.pdf}
+
+}
+
+\end{figure}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_reduced)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
 
 Call:
-lm(formula = log(Yards) ~ Distance + RB + WR + DefendersInTheBox^2 + 
-    Temperature + GameHour + DL + LB + YardsFromOwnGoal^2, data = football_data)
+lm(formula = (Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ 
+    sin(Distance) + WR + DefendersInTheBox^2 + Temperature + 
+        BL + YardsFromOwnGoal, data = football_data)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--1.70860 -0.45847  0.06848  0.50619  1.44826 
+-0.42943 -0.13845  0.00666  0.14017  0.44016 
 
 Coefficients:
                     Estimate Std. Error t value Pr(>|t|)    
-(Intercept)        2.120e+00  8.627e-02  24.574  < 2e-16 ***
-Distance           1.266e-02  1.275e-03   9.929  < 2e-16 ***
-RB                -1.792e-05  1.231e-02  -0.001  0.99884    
-WR                -1.878e-02  9.028e-03  -2.081  0.03748 *  
-DefendersInTheBox -1.017e-01  6.702e-03 -15.176  < 2e-16 ***
-Temperature       -8.982e-04  2.643e-04  -3.398  0.00068 ***
-GameHour           2.158e-03  1.031e-03   2.094  0.03630 *  
-DL                -3.407e-02  1.100e-02  -3.098  0.00195 ** 
-LB                -3.416e-02  1.075e-02  -3.177  0.00149 ** 
-YardsFromOwnGoal  -1.642e-03  1.868e-04  -8.791  < 2e-16 ***
+(Intercept)        1.520e+00  2.267e-02  67.020  < 2e-16 ***
+sin(Distance)     -1.571e-02  2.212e-03  -7.100 1.28e-12 ***
+WR                -5.485e-03  2.422e-03  -2.265  0.02354 *  
+DefendersInTheBox -3.058e-02  1.877e-03 -16.295  < 2e-16 ***
+Temperature       -2.305e-04  7.483e-05  -3.080  0.00208 ** 
+BL                 9.652e-03  2.957e-03   3.264  0.00110 ** 
+YardsFromOwnGoal  -5.365e-04  5.169e-05 -10.380  < 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 0.665 on 21612 degrees of freedom
+Residual standard error: 0.1886 on 21615 degrees of freedom
   (279 observations deleted due to missingness)
-Multiple R-squared:  0.04282,   Adjusted R-squared:  0.04242 
-F-statistic: 107.4 on 9 and 21612 DF,  p-value: < 2.2e-16
+Multiple R-squared:  0.03983,   Adjusted R-squared:  0.03956 
+F-statistic: 149.4 on 6 and 21615 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
@@ -1120,13 +1457,13 @@ of the model can be checked.
 \begin{Highlighting}[]
 \FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
 \NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\FunctionTok{plot}\NormalTok{(reduced\_model)}
+\FunctionTok{plot}\NormalTok{(lm\_model\_reduced)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-10-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-20-1.pdf}
 
 }
 
@@ -1144,7 +1481,7 @@ Distance, DefendersInTheBox, and YardsFromOwnGoal.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(reduced\_model, football\_data)}
+\NormalTok{football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_model\_reduced, football\_data)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1158,7 +1495,7 @@ Distance, DefendersInTheBox, and YardsFromOwnGoal.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-12-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-22-1.pdf}
 
 }
 
@@ -1174,7 +1511,7 @@ Distance, DefendersInTheBox, and YardsFromOwnGoal.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-13-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-23-1.pdf}
 
 }
 
@@ -1190,7 +1527,7 @@ Distance, DefendersInTheBox, and YardsFromOwnGoal.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-14-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-24-1.pdf}
 
 }
 
@@ -1305,7 +1642,7 @@ Warning: not plotting observations with leverage one:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-19-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-29-1.pdf}
 
 }
 
@@ -1451,7 +1788,7 @@ visual indication of how well the model is performing:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-23-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-33-1.pdf}
 
 }
 
@@ -1575,7 +1912,7 @@ Now that the data has been cleaned, we can re-run the XGBoost model:
 \end{Shaded}
 
 \begin{verbatim}
-[1] "RMSE: 2.35442254039298"
+[1] "RMSE: 2.35458888130216"
 \end{verbatim}
 
 Before commenting on the results, lets take a look at some plots to get
@@ -1591,7 +1928,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-27-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-37-1.pdf}
 
 }
 
@@ -1607,7 +1944,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-28-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-38-1.pdf}
 
 }
 
@@ -1622,7 +1959,7 @@ a better understanding of the model's performance.
 \end{Shaded}
 
 \begin{verbatim}
-[1] "MAE: 1.90529614272384"
+[1] "MAE: 1.90328994001195"
 \end{verbatim}
 
 \begin{Shaded}
@@ -1636,7 +1973,7 @@ a better understanding of the model's performance.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-30-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-40-1.pdf}
 
 }
 
