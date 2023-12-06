@@ -207,16 +207,9 @@ First, lets start by importing the completely clean and ready to use dataset. Th
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
 
 str(football_data)
-```
-
-Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
-  
-```{r}
-# Remove any rows whose yards column is greater than 30
-football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
 ```
 
 Decision Trees, Random Forest and XGBoost models are all tree-based models used as part of the standard for sports analytics. Therefore, we will go through the process of building a decision tree model, then a random forest model, and finally an XGBoost model to get a better understanding of our data and help with our analysis.
@@ -259,7 +252,7 @@ Once the data is split, we delve into verifying the balance between our training
 (ave_all <- mean(football_data$Yards))
 ```
 
-Moving forward, we construct a Decision Tree model. The beauty of a Decision Tree lies in its simplicity and interpretability. After training the model, we assess its performance using the Mean Squared Error (MSE) on the test set. The RMSE offers a clear metric to gauge the accuracy of our predictions, guiding us in refining our model further.
+Moving forward, we construct a Decision Tree model. The beauty of a Decision Tree lies in its simplicity and interpretability. After training the model, we assess its performance using the Root Mean Squared Error (RMSE) on the test set.
 
 ```{r}
 # Decision Tree Model
@@ -279,7 +272,7 @@ To gain deeper insights into the decision-making logic of our model, we visualiz
 rpart.plot(dt_model, type = 4, extra = 1, under = TRUE, faclen = 0)
 ```
 
-Upon evaluating our Decision Tree model, we observed its simplicity - it comprises only one split. While simplicity can be a virtue, in this case, it indicates that our model may be overly simplistic to capture the complexities inherent in our dataset. This simplicity could stem from the nuanced nature of the 'Yards' variable in the NFL Big Data Bowl dataset, which might require a more sophisticated approach to uncover the underlying patterns effectively.
+Upon evaluating our Decision Tree model, we observed its simplicity - it comprises only one split. While simplicity can be a virtue, in this case, it indicates that our model may be overly simplistic to capture the complexities inherent in our dataset. This simplicity could stem from the nuanced nature of the 'Yards' variable in the dataset, which might require a more sophisticated approach to uncover the underlying patterns effectively.
 
 Given this situation, we turn our attention to the Random Forest model. A Random Forest is essentially an ensemble of Decision Trees. This ensemble approach amalgamates the predictions from multiple trees, thereby enhancing the model's ability to capture complex relationships and reducing the risk of overfitting, which is a common challenge with individual Decision Trees. By leveraging the collective wisdom of multiple trees, a Random Forest can often achieve higher accuracy and better generalization to new, unseen data.
 
@@ -308,7 +301,7 @@ top_features <- sort(feature_importance[, 'IncNodePurity'], decreasing = TRUE)[1
 top_features
 ```
 
-Our models top 3 import predictors are YardsFromOwnGoal, Temperature and Humidity. Before commenting on these results, we will build an XGBoost model to see if we can improve our MSE.
+Our models top 3 import predictors are `YardsFromOwnGoal`, `Temperature` and `Humidity`. Before commenting on these results, we will build an XGBoost model to see if we can improve our RMSE.
 
 Next, we turn our focus to preparing the data for XGBoost, a powerful gradient boosting framework. XGBoost requires the data to be in a matrix format. Thus, we convert our training and testing datasets accordingly, excluding the target variable 'Yards'. This conversion is a critical step in harnessing the full potential of XGBoost's capabilities.
 
@@ -323,7 +316,7 @@ dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
 dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
 ```
 
-Nowe we can run the model:
+Now we can run the model:
 
 ```{r}
 # Set XGBoost parameters
@@ -368,7 +361,18 @@ summary(football_data$Yards)
 
 When we check these statistics we can see that 75% of the data results in a gain of 6 yards or less and 75% of the data results in a gain of 1 yard or more. This confirms our intuition, and helps justify the tresholds we set for the outliers.
 
+Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
+  
 ```{r}
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+```
+
+We do not show the code as the model is the exact same, instead we only show the output:
+```{r}
+#| eval: TRUE
+#| echo: FALSE
+
 # Split the data into a training set and a testing set
 set.seed(123457)
 train.prop <- 0.80
@@ -456,7 +460,7 @@ First, lets start by importing the completely clean and ready to use dataset. Th
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
 
 str(football_data)
 ```
