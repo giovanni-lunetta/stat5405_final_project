@@ -52,6 +52,10 @@ The National Football League (NFL) is the most popular professional sports leagu
 
 The NFL game strategy primarily consists of two ways to advance the football down the field: running and passing. Running the ball is defined as a play in which the quarterback gives the ball to another player that is located behind them (a handoff or a small toss). The player then attempts to run the ball down the field as far as possible before being tackled to the ground. Passing the ball is defined as a play in which the quarterback throws the ball to another player down the field. The player then attempts to catch the ball and advance it down the field as far as possible before being tackled to the ground. The goal of each team is to score as many points as possible by advancing the ball down the field and into the end zone or by kicking the ball through the field goal posts. The team with the most points at the end of the game wins.
 
+## Literature Review of "Predicting NFL running back rushing yards using Hierarchical Bayesian Linear Regression"
+
+In the realm of NFL predictive analytics, the study "Predicting NFL running back rushing yards using Hierarchical Bayesian Linear Regression" stands out for its innovative approach, aligning closely with our study's objectives. It specifically aimed to forecast NFL running backs' performance using Bayesian linear regression, drawing on the “NFL Offensive Stats 2019 – 2022” dataset. The study's methodology, employing a student t distribution to account for the positively skewed rushing yards data and integrating informative priors based on factors like team favorability, weather conditions, and game-specific variables, offers a valuable framework for our research. These elements, including the use of R for data processing and JAGS for model compilation, underscore the importance of considering individual player performance and contextual game factors. This approach is particularly relevant to our study, which also seeks to enhance predictive models in football using machine learning techniques. By focusing on player-specific and game-context data, the referenced study provides key methodological insights and underscores the significance of situational analysis in sports analytics, thereby informing our approach to leveraging machine learning in predicting NFL running back performance.
+
 ## Motivation
 
 The primary goal of this research is to develop cutting-edge predictive models capable of accurately estimating the yards a running back will gain after a handoff during NFL games. This objective is pivotal for formulating advanced offensive strategies and refining player evaluations. The running play is a fundamental aspect of the game that can dictate the tempo, control the clock, and establish physical dominance.
@@ -84,12 +88,12 @@ Prior to the development of the predictive models, a comprehensive exploratory d
 During preprocessing, we will also undertake feature engineering to create new variables that may have a stronger relationship with the target variable. This could include interaction terms that capture the combined effect of two predictors, polynomial features for capturing non-linear relationships, and domain-specific features that encapsulate strategic elements of the game.
 
 
-## Variable Selection and Explanation:
+# Variable Selection and Explanation:
 
-### Dependent Variable:
+## Dependent Variable:
 - `Yards`: The yardage gained on the play (we are predicting this). 
 
-### Game Context Variables:
+## Game Context Variables:
 - `Quarter`: The quarter of the game (1-5, 5 == overtime). Indicates the stage of the game. Player fatigue, strategic decisions, and urgency can vary significantly depending on the game quarter. 
 - `YardsFromOwnGoal`: The number of yards from the offense's own goal line. Provides context on field position. The closer to the end zone, the higher the potential pressure and change in play strategy. 
 - `Down`: The down (1-4). Critical for understanding the play strategy. Teams might take different risks or play types depending on the down.
@@ -109,7 +113,7 @@ During preprocessing, we will also undertake feature engineering to create new v
 - `Week`: The week of the game (1-17). Can be an indicator of team development and adaptation over the season. Teams usually take a few weeks to find their rhythm and establish their identity but become more run down and fatigued as the season progresses, specifically running backs who take a lot of hits.
 - `GameHour`: The hour of the game (1-24). Might correlate with environmental factors or player fatigue. For instance, night games might be colder, while afternoon games might be warmer. Additionally, late games such as prime-time games might be more physically and mentally taxing on players.
 
-## Model Development and Evaluation
+# Model Development and Evaluation
 
 With a clean and prepared dataset, we will then proceed to develop our MLR, GLM, and XGBoost models.
 
@@ -191,17 +195,268 @@ The final step will be to interpret the models in the context of NFL games. This
 
 All analyses will be conducted in R, a statistical computing language that provides a wide array of packages for machine learning and data analysis. For MLR and GLM, we will utilize the `stats` package that comes with the R base installation. For our XGBoost model, we will use the `xgboost` package, which is specifically designed for speed and performance. Data manipulation and cleansing will be managed with packages like `dplyr` and `tidyr`, while `ggplot2` will be employed for data visualization to facilitate understanding and interpretation of the data and model outputs. For feature engineering and preprocessing, we will take advantage of `caret` or `recipes`. Hyperparameter tuning can be optimized using the `tune` package, and for cross-validation, the `rsample` package will be employed. The `broom` and `modelr` packages will be useful for tidying model outputs and working with models in a pipeline, respectively. This suite of packages will enable a comprehensive workflow within R for developing, evaluating, and interpreting the predictive models.
 
-## Model Development
+# Model Development
 
-To commence our analytical journey, we initiate with Multiple Linear Regression (MLR) as our foundational modeling technique. This approach is not just a stepping stone, but a critical phase in our analysis, offering valuable insights into the relationships between various features of the game and the yards gained. MLR helps discern the linear associations and relative importance of different variables, setting the stage for more complex modeling. Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
+To commence our analytical journey, we initiate with Multiple Linear Regression (MLR) as our foundational modeling technique. This approach is not just a stepping stone, but a critical phase in our analysis, offering valuable insights into the relationships between various features of the game and the yards gained. MLR helps discern the linear associations and relative importance of different variables, setting the stage for more complex modeling. From there, we transition to the Generalized Linear Model with a Gamma Response. Generalized Linear Models (GLMs) are a powerful extension of the linear model framework, allowing for response variables that have error distribution models other than a normal distribution. GLMs are particularly useful when dealing with non-normal response variables, such as count data or binary outcomes. In its general form, a GLM consists of three elements: a random component, a systematic component, and a link function. The choice of link function is crucial and is typically selected based on the nature of the distribution of the response variable. For instance, a logit link function is used for a binomial distribution, and a log link function is often used for a Poisson distribution. In our specific case, the Gamma distribution is chosen as the response variable, as it is a continuous distribution that can handle non-negative values.
 
-# Multiple Linear Regression Model
+Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
+
+## Decision Tree Modeling:
 
 First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
 
 ```{r}
 # Import the dataset
-football_data <- read.csv("/Users/giovanni-lunetta/uconn_masters/stat5405/final_project/data/train_ready.csv")
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+
+str(football_data)
+```
+
+Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
+  
+```{r}
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+```
+
+Decision Trees, Random Forest and XGBoost models are all tree-based models used as part of the standard for sports analytics. Therefore, we will go through the process of building a decision tree model, then a random forest model, and finally an XGBoost model to get a better understanding of our data and help with our analysis.
+
+Our initial step involves preparing the data for analysis. Recognizing the importance of having a representative sample for both training and testing, we employed stratified sampling. This technique ensures that our training and testing sets mirror the distribution of 'Yards' in the complete dataset. By maintaining this distribution, we aim to build models that are well-generalized and reflective of real-world scenarios.
+
+```{r}
+library(rpart)
+library(randomForest)
+library(xgboost)
+library(caret)
+library(rpart.plot)
+library(fastDummies)
+
+# Convert specified factor columns to dummy variables
+football_data <- dummy_cols(football_data, 
+                            select_columns = c("WindDirection", "GameWeather", "OffenseFormation"), 
+                            remove_selected_columns = TRUE)
+
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
+
+names(train.set) <- make.names(names(train.set), unique = TRUE)
+names(test.set) <- make.names(names(test.set), unique = TRUE)
+```
+
+Once the data is split, we delve into verifying the balance between our training and testing sets. It's crucial that the average 'Yards' in these sets closely align with the overall dataset's average. This alignment indicates that our stratified sampling was effective and that both sets are indeed representative, eliminating biases that might skew our model training and validation.
+
+```{r}
+# Check that the average of yards is about the same in both the training and testing sets
+(ave_train <- mean(train.set$Yards))
+(ave_test <- mean(test.set$Yards))
+(ave_all <- mean(football_data$Yards))
+```
+
+Moving forward, we construct a Decision Tree model. The beauty of a Decision Tree lies in its simplicity and interpretability. After training the model, we assess its performance using the Mean Squared Error (MSE) on the test set. The RMSE offers a clear metric to gauge the accuracy of our predictions, guiding us in refining our model further.
+
+```{r}
+# Decision Tree Model
+dt_model <- rpart(Yards ~ ., data = train.set, method = "anova", 
+                  control = rpart.control(maxdepth = 5, cp = 0.01, minsplit = 20))
+dt_predictions <- predict(dt_model, test.set)
+
+# Evaluate the models
+dt_rmse <- sqrt(mean((test.set$Yards - dt_predictions)^2))
+dt_rmse
+```
+
+To gain deeper insights into the decision-making logic of our model, we visualize the Decision Tree. This visualization not only aids in interpreting the model but also serves as a tool to communicate our findings effectively to stakeholders who might be less familiar with machine learning intricacies.
+
+```{r}
+# Plot the decision tree
+rpart.plot(dt_model, type = 4, extra = 1, under = TRUE, faclen = 0)
+```
+
+Upon evaluating our Decision Tree model, we observed its simplicity - it comprises only one split. While simplicity can be a virtue, in this case, it indicates that our model may be overly simplistic to capture the complexities inherent in our dataset. This simplicity could stem from the nuanced nature of the 'Yards' variable in the NFL Big Data Bowl dataset, which might require a more sophisticated approach to uncover the underlying patterns effectively.
+
+Given this situation, we turn our attention to the Random Forest model. A Random Forest is essentially an ensemble of Decision Trees. This ensemble approach amalgamates the predictions from multiple trees, thereby enhancing the model's ability to capture complex relationships and reducing the risk of overfitting, which is a common challenge with individual Decision Trees. By leveraging the collective wisdom of multiple trees, a Random Forest can often achieve higher accuracy and better generalization to new, unseen data.
+
+We proceed to build and evaluate a Random Forest model on our dataset, hoping to achieve better predictive performance than our initial simplistic Decision Tree.
+
+```{r}
+# Building the Random Forest model
+rf_model <- randomForest(Yards ~ ., data = train.set, ntree = 300., mtry = 3)
+
+# Predicting on the test set
+rf_predictions <- predict(rf_model, test.set)
+
+# Evaluating the model using Root Mean Squared Error
+rf_rmse <- sqrt(mean((test.set$Yards - rf_predictions)^2))
+
+# Output the Root Mean Squared Error
+rf_rmse
+
+# Getting the importance of each variable based on IncNodePurity
+feature_importance <- importance(rf_model)
+
+# Sorting features by IncNodePurity and selecting the top 3
+top_features <- sort(feature_importance[, 'IncNodePurity'], decreasing = TRUE)[1:3]
+
+# Output the top 3 important features
+top_features
+```
+
+Our models top 3 import predictors are YardsFromOwnGoal, Temperature and Humidity. Before commenting on these results, we will build an XGBoost model to see if we can improve our MSE.
+
+Next, we turn our focus to preparing the data for XGBoost, a powerful gradient boosting framework. XGBoost requires the data to be in a matrix format. Thus, we convert our training and testing datasets accordingly, excluding the target variable 'Yards'. This conversion is a critical step in harnessing the full potential of XGBoost's capabilities.
+
+```{r}                      
+# Prepare the data for XGBoost
+# Convert data to matrix format as xgboost works with the matrix
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+
+# Create DMatrices
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+```
+
+Nowe we can run the model:
+
+```{r}
+# Set XGBoost parameters
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",  # Objective function for regression
+    eta = 0.1,                      # Learning rate
+    max_depth = 6,                  # Depth of trees
+    subsample = 0.5,                # Subsampling of the training data
+    colsample_bytree = 0.5          # Subsampling of features
+)
+
+# Number of boosting rounds
+nrounds <- 100
+
+# Train the model
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+
+# Predicting
+xgb_predictions <- predict(xgb_model, dtest)
+
+# Evaluate the model
+# For example, using Root Mean Squared Error (RMSE)
+true_values <- test.set$Yards
+rmse <- sqrt(mean((true_values - xgb_predictions)^2))
+print(paste("RMSE:", rmse))
+```
+
+Next we can plot a scatter plot of the actual vs predicted values:
+
+```{r}
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+As we can see, there are many outliers from plays where the running backs break out and gain a lot of yards and also some outliers from where thee running backs lose more than 5 yards. Similar to the approach used in the previous modeling techniques, we will remove all plays where the running back gained more than 10 yards and lost more than 5. This will help us get a better understanding of the model's performance on the majority of plays. The intuition behind this is two fold. Domain knowledge helps us claim that not many plays end in either breakout or major loss plays, but we can also look at the summary statistics of the dataset to confirm this.
+
+```{r}
+summary(football_data$Yards)
+```
+
+When we check these statistics we can see that 75% of the data results in a gain of 6 yards or less and 75% of the data results in a gain of 1 yard or more. This confirms our intuition, and helps justify the tresholds we set for the outliers.
+
+```{r}
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
+
+# Prepare the data for XGBoost
+# Convert data to matrix format as xgboost works with the matrix
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+
+# Create DMatrices
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+
+# Set XGBoost parameters
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",  # Objective function for regression
+    eta = 0.1,                      # Learning rate
+    max_depth = 6,                  # Depth of trees
+    subsample = 0.5,                # Subsampling of the training data
+    colsample_bytree = 0.5          # Subsampling of features
+)
+
+# Number of boosting rounds
+nrounds <- 100
+
+# Train the model
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+
+# Predicting
+xgb_predictions <- predict(xgb_model, dtest)
+
+# Evaluate the model
+# For example, using Root Mean Squared Error (RMSE)
+true_values <- test.set$Yards
+rmse <- sqrt(mean((true_values - xgb_predictions)^2))
+print(paste("RMSE:", rmse))
+``` 
+
+Again we can plot the actual vs predicted values:
+
+```{r}
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+We can also check feature importance, mean absolute error and the residuals plot:
+
+```{r}
+# Variable importance plot
+importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = xgb_model)
+xgb.plot.importance(importance_matrix)
+```
+
+```{r}
+# Mean Absolute Error
+mae <- mean(abs(true_values - xgb_predictions))
+print(paste("MAE:", mae))
+```
+
+```{r}
+# Residuals plot
+residuals <- true_values - xgb_predictions
+plot(residuals, type = "l", main = "Residuals Plot", xlab = "Index", ylab = "Residual")
+abline(h = 0, col = "red")
+```
+
+### Analysis of Results:
+
+
+
+
+# Appendix
+
+## Multiple Linear Regression
+
+First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
+
+```{r}
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
 
 str(football_data)
 ```
@@ -305,7 +560,10 @@ summary(lm_model_full)
 Now lets use the step function to find the best model for the data.
 
 ```{r}
-lm_model_step <- invisible(step(lm_model_full, direction = "backward"))
+#| output: FALSE
+#| eval: TRUE
+#| echo: TRUE
+lm_model_step <- step(lm_model_full, direction = "backward")
 summary(lm_model_step)
 ```
 
@@ -361,7 +619,7 @@ plot(football_data$predicted_yards, football_data$YardsFromOwnGoal, main = "Pred
 abline(0, 1, col = "red")  # Adds a 45-degree line
 ```
 
-# GLM with Gamma Response
+## GLM with Gamma Response
 
 The next model that will be synthesized is a GLM with a gamma response. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data.
 
@@ -380,9 +638,12 @@ glm_model_gamma <- glm(Yards ~ ., data = football_data, family = Gamma(link = "l
 
 Now lets use the step function to find the best model for the data.
 
-```{r}
-#glm_model_step <- step(glm_model_gamma, direction = "backward")
-# summary(glm_model_step)
+```{r} 
+#| output: FALSE
+#| eval: TRUE
+#| echo: TRUE
+glm_model_step <- step(glm_model_gamma, direction = "backward")
+summary(glm_model_step)
 ```
 
 Running this reduced model yields the following results:
@@ -398,229 +659,6 @@ par(mfrow = c(2, 2))
 old.par = par(mar = c(3, 4, 1, 2))
 plot(glm_model_gamma)
 ```
-
-## Decision Tree Modeling:
-
-Decision Trees, Random Forest and XGBoost models are all tree-based models used as part of the standard for sports analytics. Therefore, we will go through the process of building a decision tree model, then a random forest model, and finally an XGBoost model to get a better understanding of our data and help with our analysis.
-
-Our initial step involves preparing the data for analysis. Recognizing the importance of having a representative sample for both training and testing, we employed stratified sampling. This technique ensures that our training and testing sets mirror the distribution of 'Yards' in the complete dataset. By maintaining this distribution, we aim to build models that are well-generalized and reflective of real-world scenarios.
-```{r}
-library(rpart)
-library(randomForest)
-library(xgboost)
-library(caret)
-library(rpart.plot)
-library(fastDummies)
-
-# Convert specified factor columns to dummy variables
-football_data <- dummy_cols(football_data, 
-                            select_columns = c("WindDirection", "GameWeather", "OffenseFormation"), 
-                            remove_selected_columns = TRUE)
-
-# Split the data into a training set and a testing set
-set.seed(123457)
-train.prop <- 0.80
-strats <- football_data$Yards
-rr <- split(1:length(strats), strats)
-idx <- sort(as.numeric(unlist(sapply(rr, 
-        function(x) sample(x, length(x)*train.prop)))))
-train.set <- football_data[idx, ]
-test.set <- football_data[-idx, ]
-
-names(train.set) <- make.names(names(train.set), unique = TRUE)
-names(test.set) <- make.names(names(test.set), unique = TRUE)
-```
-
-Once the data is split, we delve into verifying the balance between our training and testing sets. It's crucial that the average 'Yards' in these sets closely align with the overall dataset's average. This alignment indicates that our stratified sampling was effective and that both sets are indeed representative, eliminating biases that might skew our model training and validation.
-```{r}
-# Check that the average of yards is about the same in both the training and testing sets
-(ave_train <- mean(train.set$Yards))
-(ave_test <- mean(test.set$Yards))
-(ave_all <- mean(football_data$Yards))
-```
-
-Moving forward, we construct a Decision Tree model. The beauty of a Decision Tree lies in its simplicity and interpretability. After training the model, we assess its performance using the Mean Squared Error (MSE) on the test set. The RMSE offers a clear metric to gauge the accuracy of our predictions, guiding us in refining our model further.
-```{r}
-# Decision Tree Model
-dt_model <- rpart(Yards ~ ., data = train.set, method = "anova", 
-                  control = rpart.control(maxdepth = 5, cp = 0.01, minsplit = 20))
-dt_predictions <- predict(dt_model, test.set)
-
-# Evaluate the models
-dt_rmse <- sqrt(mean((test.set$Yards - dt_predictions)^2))
-dt_rmse
-```
-
-To gain deeper insights into the decision-making logic of our model, we visualize the Decision Tree. This visualization not only aids in interpreting the model but also serves as a tool to communicate our findings effectively to stakeholders who might be less familiar with machine learning intricacies.
-```{r}
-# Plot the decision tree
-rpart.plot(dt_model, type = 4, extra = 1, under = TRUE, faclen = 0)
-```
-
-Upon evaluating our Decision Tree model, we observed its simplicity - it comprises only one split. While simplicity can be a virtue, in this case, it indicates that our model may be overly simplistic to capture the complexities inherent in our dataset. This simplicity could stem from the nuanced nature of the 'Yards' variable in the NFL Big Data Bowl dataset, which might require a more sophisticated approach to uncover the underlying patterns effectively.
-
-Given this situation, we turn our attention to the Random Forest model. A Random Forest is essentially an ensemble of Decision Trees. This ensemble approach amalgamates the predictions from multiple trees, thereby enhancing the model's ability to capture complex relationships and reducing the risk of overfitting, which is a common challenge with individual Decision Trees. By leveraging the collective wisdom of multiple trees, a Random Forest can often achieve higher accuracy and better generalization to new, unseen data.
-
-We proceed to build and evaluate a Random Forest model on our dataset, hoping to achieve better predictive performance than our initial simplistic Decision Tree.
-```{r}
-# Building the Random Forest model
-rf_model <- randomForest(Yards ~ ., data = train.set, ntree = 300., mtry = 3)
-
-# Predicting on the test set
-rf_predictions <- predict(rf_model, test.set)
-
-# Evaluating the model using Root Mean Squared Error
-rf_rmse <- sqrt(mean((test.set$Yards - rf_predictions)^2))
-
-# Output the Root Mean Squared Error
-rf_rmse
-
-# Getting the importance of each variable based on IncNodePurity
-feature_importance <- importance(rf_model)
-
-# Sorting features by IncNodePurity and selecting the top 3
-top_features <- sort(feature_importance[, 'IncNodePurity'], decreasing = TRUE)[1:3]
-
-# Output the top 3 important features
-top_features
-```
-
-Our models top 3 import predictors are YardsFromOwnGoal, Temperature and Humidity. Before commenting on these results, we will build an XGBoost model to see if we can improve our MSE.
-
-Next, we turn our focus to preparing the data for XGBoost, a powerful gradient boosting framework. XGBoost requires the data to be in a matrix format. Thus, we convert our training and testing datasets accordingly, excluding the target variable 'Yards'. This conversion is a critical step in harnessing the full potential of XGBoost's capabilities.
-```{r}                      
-# Prepare the data for XGBoost
-# Convert data to matrix format as xgboost works with the matrix
-train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
-test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
-
-# Create DMatrices
-dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
-dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
-```
-
-Nowe we can run the model:
-```{r}
-# Set XGBoost parameters
-params <- list(
-    booster = "gbtree",
-    objective = "reg:squarederror",  # Objective function for regression
-    eta = 0.1,                      # Learning rate
-    max_depth = 6,                  # Depth of trees
-    subsample = 0.5,                # Subsampling of the training data
-    colsample_bytree = 0.5          # Subsampling of features
-)
-
-# Number of boosting rounds
-nrounds <- 100
-
-# Train the model
-xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
-
-# Predicting
-xgb_predictions <- predict(xgb_model, dtest)
-
-# Evaluate the model
-# For example, using Root Mean Squared Error (RMSE)
-true_values <- test.set$Yards
-rmse <- sqrt(mean((true_values - xgb_predictions)^2))
-print(paste("RMSE:", rmse))
-```
-
-Next we can plot a scatter plot of the actual vs predicted values:
-```{r}
-# Scatter plot of actual vs. predicted values
-plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
-abline(0, 1, col = "red")  # Adds a 45-degree line
-```
-
-As we can see, there are many outliers from plays where the running backs break out and gain a lot of yards and also some outliers from where thee running backs lose more than 5 yards. Similar to the approach used in the previous modeling techniques, we will remove all plays where the running back gained more than 10 yards and lost more than 5. This will help us get a better understanding of the model's performance on the majority of plays. The intuition behind this is two fold. Domain knowledge helps us claim that not many plays end in either breakout or major loss plays, but we can also look at the summary statistics of the dataset to confirm this.
-```{r}
-summary(football_data$Yards)
-```
-When we check these statistics we can see that 75% of the data results in a gain of 6 yards or less and 75% of the data results in a gain of 1 yard or more. This confirms our intuition, and helps justify the tresholds we set for the outliers.
-
-```{r}
-# Remove all carries over 20 yards
-football_data <- football_data[football_data$Yards <= 10, ]
-football_data <- football_data[football_data$Yards >= -5, ]
-
-# Split the data into a training set and a testing set
-set.seed(123457)
-train.prop <- 0.80
-strats <- football_data$Yards
-rr <- split(1:length(strats), strats)
-idx <- sort(as.numeric(unlist(sapply(rr, 
-        function(x) sample(x, length(x)*train.prop)))))
-train.set <- football_data[idx, ]
-test.set <- football_data[-idx, ]
-
-# Prepare the data for XGBoost
-# Convert data to matrix format as xgboost works with the matrix
-train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
-test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
-
-# Create DMatrices
-dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
-dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
-
-# Set XGBoost parameters
-params <- list(
-    booster = "gbtree",
-    objective = "reg:squarederror",  # Objective function for regression
-    eta = 0.1,                      # Learning rate
-    max_depth = 6,                  # Depth of trees
-    subsample = 0.5,                # Subsampling of the training data
-    colsample_bytree = 0.5          # Subsampling of features
-)
-
-# Number of boosting rounds
-nrounds <- 100
-
-# Train the model
-xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
-
-# Predicting
-xgb_predictions <- predict(xgb_model, dtest)
-
-# Evaluate the model
-# For example, using Root Mean Squared Error (RMSE)
-true_values <- test.set$Yards
-rmse <- sqrt(mean((true_values - xgb_predictions)^2))
-print(paste("RMSE:", rmse))
-``` 
-
-Again we can plot the actual vs predicted values:
-```{r}
-# Scatter plot of actual vs. predicted values
-plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
-abline(0, 1, col = "red")  # Adds a 45-degree line
-```
-
-We can also check feature importance, mean absolute error and the residuals plot:
-```{r}
-# Variable importance plot
-importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = xgb_model)
-xgb.plot.importance(importance_matrix)
-```
-
-```{r}
-# Mean Absolute Error
-mae <- mean(abs(true_values - xgb_predictions))
-print(paste("MAE:", mae))
-```
-
-```{r}
-# Residuals plot
-residuals <- true_values - xgb_predictions
-plot(residuals, type = "l", main = "Residuals Plot", xlab = "Index", ylab = "Residual")
-abline(h = 0, col = "red")
-```
-
-### Analysis of Results:
-
-
-
 
 
 
