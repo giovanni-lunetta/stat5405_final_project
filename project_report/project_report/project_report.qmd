@@ -201,7 +201,395 @@ To commence our analytical journey, we initiate with Multiple Linear Regression 
 
 Subsequent to this exploratory analysis, we transition to XGBoost, an advanced machine learning technique renowned for its predictive power and efficiency. XGBoost, a gradient boosting framework, is chosen for its ability to handle the dataset's complexity, non-linear relationships, and interactions among variables more adeptly. This shift from MLR to XGBoost embodies our methodological progression, from understanding the foundational relationships in our data to harnessing advanced computational techniques for more accurate and robust predictions in the dynamic and unpredictable context of NFL games.
 
-## Decision Tree Modeling:
+## GLM with Gamma Response
+
+First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
+
+```{r}
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+
+str(football_data)
+```
+
+Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
+  
+```{r}
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+```
+
+The next model that will be synthesized is a GLM with a gamma response. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data.
+
+Lets start by removing any rows whose yards column is negative. This is because the gamma distribution cannot have negative values. 
+
+```{r}
+# Remove any rows whose yards column is negative
+football_data <- football_data[football_data$Yards >= 0.1, ]
+football_data <- football_data[football_data$Yards <= 10, ]
+```
+
+Lets start by fitting the null glm model. This model will be used as a baseline for comparison to the other models. 
+
+```{r}
+# Fit the model
+glm_model_gamma <- glm(Yards ~ 1, data = football_data, family = Gamma(link = "log"))
+```
+
+Now we can run the full model.
+
+```{r}
+# Fit the model
+glm_model_gamma <- glm(Yards ~ ., data = football_data, family = Gamma(link = "log"))
+```
+
+Now lets use the step function to find the best model for the data.
+
+```{r} 
+#| output: FALSE
+#| eval: TRUE
+#| echo: TRUE
+glm_model_step <- step(glm_model_gamma, direction = "backward")
+summary(glm_model_step)
+```
+
+Running this reduced model yields the following results:
+
+```{r}
+reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
+summary(reduced_model)
+```
+
+The regression model was fitted to predict Yards using several predictor variables. The intercept, representing the expected value of Yards when all other predictors are zero, is highly significant (t = 24.188, p < 2e-16), indicating that there is a substantial baseline value of Yards. This intercept is consistent with the notion that even in the absence of other factors, some yards are expected.
+
+Moving to individual predictors, YardsFromOwnGoal exhibits a negative coefficient (-0.0015976) with high significance (t = -9.389, p < 2e-16), implying that as a team moves away from their own goal, the expected yards tend to increase. Distance, with a positive coefficient of 0.0122438 and high significance (t = 10.555, p < 2e-16), suggests that longer distances on the field are associated with greater yards gained. These results align with intuitive expectations in football, where advancing towards the opponent's goal typically results in more yards gained.
+
+However, not all predictors are equally influential. RB, representing a certain player position, lacks significance (t = 0.072, p = 0.942643), indicating that the presence of RB does not significantly contribute to the variation in Yards. WR, on the other hand, has a marginally significant negative impact (t = -1.780, p = 0.075118), suggesting that having more Wide Receivers on the field might be associated with fewer yards gained. This result should be interpreted cautiously due to its marginal significance.
+
+DefendersInTheBox, with a negative coefficient of -0.0938411 and high significance (t = -15.436, p < 2e-16), implies that having more defenders close to the line of scrimmage is associated with a decrease in yards gained. BL (perhaps denoting Blockers), with a positive coefficient of 0.0334060 and significance (t = 3.523, p = 0.000427), suggests that a strong blocking presence contributes positively to the yards gained.
+
+Turning attention to additional model diagnostics, the dispersion parameter for the Gamma family is 0.3704999. A lower dispersion parameter indicates that the model is well-fitted to the data. The null deviance (9177.3) and residual deviance (8838.8) provide insights into model improvement. The decrease in deviance suggests that the predictors collectively enhance the model's explanatory power. The Akaike Information Criterion (AIC) of 93929, while relatively high, serves as a trade-off between goodness of fit and model complexity. Model improvement might be achieved through further refinement or the consideration of interaction terms.
+
+In conclusion, this regression model, while generally well-fitted and insightful, warrants careful consideration of the significance and practical implications of each predictor. Adjustments may be made to enhance interpretability and simplify the model without compromising its explanatory power.
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
+
+```{r}
+par(mfrow = c(2, 2))
+old.par = par(mar = c(3, 4, 1, 2))
+plot(glm_model_gamma)
+```
+
+Above, we have four different plots called Residuals vs Fitted, Q-Q Residuals, Scale-Location, and Residuals vs Leverage. The Residuals vs Fitted plot shows that the residuals are randomly distributed around the 0 line. This indicates that the residuals are normally distributed. Although, there are some outliers that are far away from the 0 line. 
+
+The Q-Q Residuals plot shows that the residuals are, for the most part, normally distributed. However, there are some outliers that are far away from the 0 line. In addition, the line begins to veer away from the line of normality on the right side of the plot. 
+
+The Scale-Location plot does show a strange pattern in the residuals. It appears to be a bouncing ball pattern where the residuals fall to zero and then increase again, only to eventually come back down to zero. The line can be most aptly desrcibed by the path a ball bouncing a long a table would make.
+
+The presence of a bouncing ball pattern in the Scale-Location plot of residuals may be indicative of systematic errors or trends in the data that the model is not capturing adequately.
+
+The bouncing ball pattern could be a signal of non-linearity in the relationship between the predictors and the response variable. It indicates that as the predicted values of the response variable change, the variability of the residuals also changes. The residuals first decrease, then increase, and finally decrease again, forming a pattern resembling a bouncing ball.
+
+In addition, the presence of outliers or influential data points could lead to the observed pattern. These points might have a disproportionate impact on the model's fit, causing the residuals to exhibit a bouncing ball behavior.
+
+The Residuals vs Leverage plot shows that there are some outliers that are far away from the 0 line. These outliers could be the cause of the bouncing ball pattern in the Scale-Location plot.
+
+Lets now rerun a new model without the outliers. Lets first identify the outliers by calculating the Cook's distance for each observation.
+
+```{r}
+# Identify the outliers
+cooksd <- cooks.distance(glm_model_gamma)
+plot(cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+abline(h = 4*mean(cooksd, na.rm=T), col="red")  # add cutoff line
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>4*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
+```
+
+Based on the Cook's distance plot, there are several outliers that are far away from the 0 line. These outliers will be removed from the dataset.
+
+```{r}
+# Remove these outliers based on cooks cooks
+extpts <- which(abs(residuals(glm_model_gamma)) > 3*sd(residuals(glm_model_gamma)))
+football_data <- football_data[-extpts,]
+
+#Now lets split the data into a training and testing set
+set.seed(123)
+train_index <- sample(1:nrow(football_data), 0.8*nrow(football_data))
+train_data <- football_data[train_index,]
+test_data <- football_data[-train_index,]
+```
+
+In order to have another fair comparison, lets run the null model again without outliers.
+
+```{r}
+# Fit the model
+glm_model_gamma <- glm(Yards ~ 1, data = train_data, family = Gamma(link = "log"))
+```
+
+Now lets rerun the model without the outliers.
+
+```{r}
+# Fit the model
+reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data = train_data, family = Gamma(link = "log"))
+summary(reduced_model)
+```
+
+Running this reduced model yields the following results:
+
+The regression model was fitted to predict Yards using several predictor variables. The intercept, representing the expected value of Yards when all other predictors are zero, is highly significant (t = 21.624, p < 2e-16), indicating that there is a substantial baseline value of Yards. This intercept is consistent with the notion that even in the absence of other factors, some yards are expected.
+
+Moving to individual predictors, YardsFromOwnGoal exhibits a negative coefficient (-0.001445), implying that as a team moves away from their own goal, the expected yards tend to increase. Distance, with a positive coefficient of 0.0.013320 and high significance (t = 10.217, p < 2e-16), suggests that longer distances on the field are associated with greater yards gained. These results align with intuitive expectations in football, where advancing towards the opponent's goal typically results in more yards gained. 
+
+However, not all predictors are equally influential. RB, representing a certain player position, lacks significance (t = 0.621, p = 0.5344), indicating that the presence of RB does not significantly contribute to the variation in Yards. WR, on the other hand, has a marginally significant negative impact (t = -0.863, p = 0.3883), suggesting that having more Wide Receivers on the field might be associated with fewer yards gained. This result should be interpreted cautiously due to its marginal significance.
+
+DefendersInTheBox, with a negative coefficient of -0.095197 and high significance (t = -13.996, p < 2e-16), implies that having more defenders close to the line of scrimmage is associated with a decrease in yards gained. BL (denoting backline), with a positive coefficient of 0.026601 and significance (t = 2.509, p = 0.0121), suggests that a strong backline presence contributes positively to the yards gained.
+
+Now we can test for model adequacy. This will be done by comparing the fitted full model with the null model. We do this to see whether all the predictors taken together are useful for explaining yards above the intercept alone. The null hypothesis is that the null model is just as adequate as the reduced model. On the other hand, the alternative hypothesis is that the reduced model is more adequate than the null model. The confidence level for this test, $\alpha$, is 0.05.
+
+```{r}
+with(reduced_model, cbind(deviance = null.deviance - deviance, 
+                      df = df.null - df.residual,
+                      p = pchisq(null.deviance - deviance, 
+                      df.null - df.residual, 
+                      lower.tail = FALSE)))
+```
+
+With a p-value of $ 5.525e^(-56) $, which is less than the confidence level of 0.05, we reject the null hypothesis. This means that the reduced model is more adequate than the null model. In other words, the predictors in the reduced model are useful for explaining yards above the intercept alone.
+
+We can also compare the Akaike Information Criterion (AIC) from the fitted reduced model and the null model. The better model is the one which gives the smaller AIC:
+
+```{r}
+AIC(glm_model_gamma, reduced_model)
+```
+
+The AIC for the null model is 75777.76. The AIC for the reduced model is 75078.85. The reduced model has a smaller AIC than the null model. This means that the reduced model is a better fit for the data than the null model.
+
+Testing for overdispersion, we can calculate the dispersion parameter for the fitted model. The dispersion parameter is the ratio of the residual deviance to the residual degrees of freedom. The dispersion parameter should be close to 1. If it is much larger than 1, then the model is overdispersed. If it is much smaller than 1, then the model is underdispersed.
+
+```{r}
+(disp.est <- reduced_model$deviance/reduced_model$df.residual)
+```
+
+With a dispersion parameter of 0.4019009, which is less than 1, the model is underdispersed. This means that the model is not accounting for all the variability in the data. 
+
+Turning attention to the performance of the test set on the model, we will predict the yards gained for the test set using the model that was fit on the training set.
+
+```{r}
+# Predict the yards gained for the test set
+predicted_yards <- predict(reduced_model, newdata = test_data, type = "response")
+```
+
+Now lets calculate the mean squared error and the mean absolute error for the test set.
+
+```{r}
+# Calculate the mean squared error
+mse <- mean((test_data$Yards - predicted_yards)^2)
+mse
+```
+
+```{r}
+# Calculate the mean absolute error
+mae <- mean(abs(test_data$Yards - predicted_yards))
+mae
+```
+
+The mean squared error for the test set is 5.515282 while the mean absolute error for the test set is 1.909325. These values are relatively low, indicating that the model is a good fit for the data.
+
+# Summary and Conclusion
+
+In this project, we developed a predictive model to forecast the yards gained after a handoff in NFL games. We began by exploring the data and conducting a comprehensive exploratory data analysis (EDA) to understand the underlying structure and characteristics of the data. This step involved visualizing the distribution of key variables, identifying patterns and outliers, and exploring correlations and interactions between predictors. Data visualization, through techniques like scatter plots, histograms, and heatmaps, offered an intuitive understanding of data distributions, correlations, and potential clusters within the dataset. EDA-informed feature selection and engineering strategies highlighted potential predictors that are most informative of yards gained after a handoff.
+
+During preprocessing, we also undertook feature engineering to create new variables that may have a stronger relationship with the target variable. This included interaction terms that capture the combined effect of two predictors, polynomial features for capturing non-linear relationships, and domain-specific features that encapsulate strategic elements of the game.
+
+With a clean and prepared dataset, we then proceeded to develop our MLR, GLM, and XGBoost models. For MLR and GLM, the model's performance was evaluated using metrics such as the Mean Squared Error (MSE) and the Mean Absolute Error (MAE). For the XGBoost model, along with MSE and MAE, we assessed performance using additional metrics like the R-squared for regression tasks and feature importance scores to understand which variables are most predictive.
+
+The final step was to interpret the models in the context of NFL games. This involved translating the statistical outputs into actionable insights for coaches and team strategists, providing recommendations on how to leverage the results for competitive advantage in play-calling and player evaluation.
+
+The model picked as the best model for determining yards per carry was selected based on both performance and interpretability. 
+
+Interpretability is critical in the context of NFL games, where the model's outputs must be translated into actionable insights for coaches and team strategists. The GLM with a Gamma response was selected as the best model for its interpretability and performance. The GLM with a Gamma response is a powerful extension of the linear model framework, allowing for response variables that have error distribution models other than a normal distribution. GLMs are particularly useful when dealing with non-normal response variables. With the GLM model, we can directly see the affects each predictor has on the outcome of the play. For instance, the coefficient for each predictor can be interpreted as the change in the response variable for a unit change in the predictor variable, while holding all other predictors constant. A negative coefficient indicates that as the predictor variable increases, the response variable decreases. On the other hand, a positive coefficient indicates that as the predictor variable increases, the response variable increases. Therefore, predictors with a positive coefficient contribute to the yards per carry increasing, while the predictors with a negative coefficient contribute to the yards per carry decreasing.
+
+As for performance, the GLM with a Gamma response had a mean squared error of 5.515282 and a mean absolute error of 1.909325. These values are relatively low, indicating that the model is a good fit for the data. Compared to the linear model, the GLM with a Gamma response had a lower mean squared error and a lower mean absolute error. This indicates that the GLM with a Gamma response is a better fit for the data than the linear model. However, the XGBoost model had a lower mean squared error and a lower mean absolute error than the GLM with a Gamma response. This indicates that the XGBoost model is a better fit for the data than the GLM with a Gamma response. The issue of the XGBost model is that it is not as interpretable as the GLM with a Gamma response. Therefore, the GLM with a Gamma response was selected as the best model for determining yards per carry.
+
+Based on the data gathered above, the GLM model states that the higher number of defenders that are in the box (the number defenders employed in an area close enough to the line of scrimmage where they can directly impact a rushing attempt by the offense) increases, the yards gained per carry decreases. Therefore, running the ball should not be attempted when there are a high number of defenders in the box. Any play with more than 6 defenders in the box will result in a play with less than average number of yards. In other words, the offense should only run the ball when there are 6 or more defenders in the box when only attempting to gain a yard or less. 
+
+Furthermore, as the offense gets closer to the endzone, the yards gained per carry decreases. This is due to the fact that there is less yardage for the offense to gain. In addition, as the distance to the endzone decreases, the defense will have more defenders in a smaller area. This means that safeties and cornerbacks will be closer to the line of scrimmage, making it more difficult for the offense to gain yards, or for breakout plays to occur.
+
+
+
+
+
+# Appendix
+
+## Multiple Linear Regression
+
+First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
+
+```{r}
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+
+str(football_data)
+```
+
+Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
+  
+```{r}
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+```
+
+Lets now look at the histogram of Yards to get a better understanding of the distribution of the response variable.
+
+```{r}
+# Histogram of Yards
+hist(football_data$Yards, main = "Histogram of Yards", xlab = "Yards", ylab = "Frequency", col = "blue")
+```
+
+Based on the histogram above, it is apparent that the number of yards is skewed to the right. In order to address this issue, the Box-Cox transformation will be utilized. This will help to normalize the distribution of the response variable. The Box-Cox transformation can transform non-normal data into normal data. 
+
+```{r}
+library(MASS)
+lambda_null <- boxcox(lm(Yards ~ 1, data = football_data))
+```
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+```{r}
+lambda_null$x[which.max(lambda_null$y)]
+```
+
+Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
+
+```{r}
+lm_model_null <- lm((Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 1, data = football_data)
+summary(lm_model_null)
+```
+
+Now the full model using all of the predictors will be created. In this full model, there will be 0 interactions between the predictors. The same process using the Box-Cox transformation will be used to normalize the distribution of the response variable.
+
+```{r}
+lambda_full <- boxcox(lm(Yards ~ ., data = football_data))
+```
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+```{r}
+lambda_full$x[which.max(lambda_full$y)]
+```
+
+Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
+
+```{r}
+lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ ., data = football_data)
+summary(lm_model_full)
+```
+
+Based on the results of the full model, the model shows which predictors are statistically significant. The most significant predictors are Distance, DefendersInTheBox, and YardsFromOwnGoal. Creating scatter plots of the response variable versus each of these predictors will help to gain a better understanding of how these variables affect the predicted yards. 
+
+```{r}
+# Scatter plot of yards vs. Distance
+plot(football_data$Yards, football_data$Distance, main = "Yards vs. Distance", xlab = "Yards", ylab = "Distance", pch = 19)
+```
+
+Looking at this scatter plot of Yards vs Distance, there appears to only be a sinusoial relationship between the two variables. Therefore, when a reduced model is created, a sine function will be used to model the relationship between the two variables.
+
+```{r}
+# Scatter plot of yards vs. Defenders In The Box
+plot(football_data$Yards, football_data$DefendersInTheBox, main = "Yards vs. Defenders In The Box", xlab = "Yards", ylab = "Defenders In The Box", pch = 19)
+```
+
+Looking at this scatter plot of Yards vs Defenders In The Box, there appears to be a quadratic function relationship between the two variables. Therefore, when a reduced model is created, the Defenders In The Box variable will be squared in order to capture this relationship
+
+```{r}
+# Scatter plot of yards vs. YardsFromOwnGoal
+plot(football_data$Yards, football_data$YardsFromOwnGoal, main = "Yards vs. Yards From Own Goal", xlab = "Yards", ylab = "Yards From Own Goal", pch = 19)
+```
+
+The scatterplot of Yards vs Yards From Own Goal shows that there is a linear relationship between the two variables. Therefore, when a reduced model is created, the Yards From Own Goal variable will not be changed since the model is already capturing this linear relationship.
+
+In order to capture these relationships between variables, a new, full model will be synthesized. This model will include the Distance variable with a sine function and the Defenders In The Box variable squared. However, the Box-Cox transformation will need to be run again.
+
+```{r}
+lambda_full <- boxcox(lm(Yards ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data))
+summary(lambda_full)
+```
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+```{r}
+lambda_full$x[which.max(lambda_full$y)]
+```
+
+Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
+
+```{r}
+lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data)
+summary(lm_model_full)
+```
+
+Now lets use the step function to find the best model for the data.
+
+```{r}
+#| output: FALSE
+#| eval: TRUE
+#| echo: TRUE
+lm_model_step <- step(lm_model_full, direction = "backward")
+summary(lm_model_step)
+```
+
+This new reduced model needs to be run similar to that of the previous models utilizing the Box-Cox transformation. 
+
+```{r}
+lambda_reduced <- boxcox(lm(Yards ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data))
+```
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+```{r}
+lambda_reduced$x[which.max(lambda_reduced$y)]
+```
+
+Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
+
+```{r}
+lm_model_reduced <- lm((Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data)
+summary(lm_model_reduced)
+```
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
+```{r}
+par(mfrow = c(2, 2))
+old.par = par(mar = c(3, 4, 1, 2))
+plot(lm_model_reduced)
+```
+
+Based on the plots above, the normality assumption is not violated, as the Q-Q Residuals plot shows that the residuals are mainly normally distributed. 
+
+In order to gain a better understanding of how these variables affect the predicted yards, scatter plots of the predicted yards versus each of the predictors will be created. However, the only scatter plots that will be synthesized are those that have the three highest t values: Distance, DefendersInTheBox, and YardsFromOwnGoal. 
+
+```{r}
+football_data$predicted_yards <- predict(lm_model_reduced, football_data)
+```
+
+```{r}
+# Scatter plot of predicted yards vs. Distance
+plot(football_data$predicted_yards, football_data$Distance, main = "Predicted Yards vs. Distance", xlab = "Predicted Yards", ylab = "Distance", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+```{r}
+# Scatter plot of predicted yards vs. DefendersInTheBox
+plot(football_data$predicted_yards, football_data$DefendersInTheBox, main = "Predicted Yards vs. DefendersInTheBox", xlab = "Predicted Yards", ylab = "DefendersInTheBox", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+```{r}
+# Scatter plot of predicted yards vs. YardsFromOwnGoal
+plot(football_data$predicted_yards, football_data$YardsFromOwnGoal, main = "Predicted Yards vs. YardsFromOwnGoal", xlab = "Predicted Yards", ylab = "YardsFromOwnGoal", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+```
+
+## Decision-Tree Model
 
 First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
 
@@ -442,251 +830,3 @@ residuals <- true_values - xgb_predictions
 plot(residuals, type = "l", main = "Residuals Plot", xlab = "Index", ylab = "Residual")
 abline(h = 0, col = "red")
 ```
-
-### Analysis of Results:
-
-
-
-
-# Appendix
-
-## Multiple Linear Regression
-
-First, lets start by importing the completely clean and ready to use dataset. This dataset was the result of procedures outlined in the data cleaning and preprocessing section.
-
-```{r}
-# Import the dataset
-football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
-
-str(football_data)
-```
-
-Since we are only focused on the most common plays and not breakout runs, we will remove any data of 10 yards or more. This is due to the fact that plays resulting in 10 yards are considered to be just as successful are play resulting in more than 10 yards. In addition, any plays resulting in 0 or negative yards will be removed. This is due to the fact that these plays are considered to be unsuccessful. 
-  
-```{r}
-# Remove any rows whose yards column is greater than 30
-football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
-```
-
-Lets now look at the histogram of Yards to get a better understanding of the distribution of the response variable.
-
-```{r}
-# Histogram of Yards
-hist(football_data$Yards, main = "Histogram of Yards", xlab = "Yards", ylab = "Frequency", col = "blue")
-```
-
-Based on the histogram above, it is apparent that the number of yards is skewed to the right. In order to address this issue, the Box-Cox transformation will be utilized. This will help to normalize the distribution of the response variable. The Box-Cox transformation can transform non-normal data into normal data. 
-
-```{r}
-library(MASS)
-lambda_null <- boxcox(lm(Yards ~ 1, data = football_data))
-```
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-```{r}
-lambda_null$x[which.max(lambda_null$y)]
-```
-
-Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
-
-```{r}
-lm_model_null <- lm((Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 1, data = football_data)
-summary(lm_model_null)
-```
-
-Now the full model using all of the predictors will be created. In this full model, there will be 0 interactions between the predictors. The same process using the Box-Cox transformation will be used to normalize the distribution of the response variable.
-
-```{r}
-lambda_full <- boxcox(lm(Yards ~ ., data = football_data))
-```
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-```{r}
-lambda_full$x[which.max(lambda_full$y)]
-```
-
-Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
-
-```{r}
-lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ ., data = football_data)
-summary(lm_model_full)
-```
-
-Based on the results of the full model, the model shows which predictors are statistically significant. The most significant predictors are Distance, DefendersInTheBox, and YardsFromOwnGoal. Creating scatter plots of the response variable versus each of these predictors will help to gain a better understanding of how these variables affect the predicted yards. 
-
-```{r}
-# Scatter plot of yards vs. Distance
-plot(football_data$Yards, football_data$Distance, main = "Yards vs. Distance", xlab = "Yards", ylab = "Distance", pch = 19)
-```
-
-Looking at this scatter plot of Yards vs Distance, there appears to only be a sinusoial relationship between the two variables. Therefore, when a reduced model is created, a sine function will be used to model the relationship between the two variables.
-
-```{r}
-# Scatter plot of yards vs. Defenders In The Box
-plot(football_data$Yards, football_data$DefendersInTheBox, main = "Yards vs. Defenders In The Box", xlab = "Yards", ylab = "Defenders In The Box", pch = 19)
-```
-
-Looking at this scatter plot of Yards vs Defenders In The Box, there appears to be a quadratic function relationship between the two variables. Therefore, when a reduced model is created, the Defenders In The Box variable will be squared in order to capture this relationship
-
-```{r}
-# Scatter plot of yards vs. YardsFromOwnGoal
-plot(football_data$Yards, football_data$YardsFromOwnGoal, main = "Yards vs. Yards From Own Goal", xlab = "Yards", ylab = "Yards From Own Goal", pch = 19)
-```
-
-The scatterplot of Yards vs Yards From Own Goal shows that there is a linear relationship between the two variables. Therefore, when a reduced model is created, the Yards From Own Goal variable will not be changed since the model is already capturing this linear relationship.
-
-In order to capture these relationships between variables, a new, full model will be synthesized. This model will include the Distance variable with a sine function and the Defenders In The Box variable squared. However, the Box-Cox transformation will need to be run again.
-
-```{r}
-lambda_full <- boxcox(lm(Yards ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data))
-summary(lambda_full)
-```
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-```{r}
-lambda_full$x[which.max(lambda_full$y)]
-```
-
-Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
-
-```{r}
-lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data)
-summary(lm_model_full)
-```
-
-Now lets use the step function to find the best model for the data.
-
-```{r}
-#| output: FALSE
-#| eval: TRUE
-#| echo: TRUE
-lm_model_step <- step(lm_model_full, direction = "backward")
-summary(lm_model_step)
-```
-
-This new reduced model needs to be run similar to that of the previous models utilizing the Box-Cox transformation. 
-
-```{r}
-lambda_reduced <- boxcox(lm(Yards ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data))
-```
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-```{r}
-lambda_reduced$x[which.max(lambda_reduced$y)]
-```
-
-Now the Box-Cox tranformation will be applied to the variable Yards with the best lambda value.
-
-```{r}
-lm_model_reduced <- lm((Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data)
-summary(lm_model_reduced)
-```
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
-```{r}
-par(mfrow = c(2, 2))
-old.par = par(mar = c(3, 4, 1, 2))
-plot(lm_model_reduced)
-```
-
-Based on the plots above, the normality assumption is not violated, as the Q-Q Residuals plot shows that the residuals are mainly normally distributed. 
-
-In order to gain a better understanding of how these variables affect the predicted yards, scatter plots of the predicted yards versus each of the predictors will be created. However, the only scatter plots that will be synthesized are those that have the three highest t values: Distance, DefendersInTheBox, and YardsFromOwnGoal. 
-
-```{r}
-football_data$predicted_yards <- predict(lm_model_reduced, football_data)
-```
-
-```{r}
-# Scatter plot of predicted yards vs. Distance
-plot(football_data$predicted_yards, football_data$Distance, main = "Predicted Yards vs. Distance", xlab = "Predicted Yards", ylab = "Distance", pch = 19)
-abline(0, 1, col = "red")  # Adds a 45-degree line
-```
-
-```{r}
-# Scatter plot of predicted yards vs. DefendersInTheBox
-plot(football_data$predicted_yards, football_data$DefendersInTheBox, main = "Predicted Yards vs. DefendersInTheBox", xlab = "Predicted Yards", ylab = "DefendersInTheBox", pch = 19)
-abline(0, 1, col = "red")  # Adds a 45-degree line
-```
-
-```{r}
-# Scatter plot of predicted yards vs. YardsFromOwnGoal
-plot(football_data$predicted_yards, football_data$YardsFromOwnGoal, main = "Predicted Yards vs. YardsFromOwnGoal", xlab = "Predicted Yards", ylab = "YardsFromOwnGoal", pch = 19)
-abline(0, 1, col = "red")  # Adds a 45-degree line
-```
-
-## GLM with Gamma Response
-
-The next model that will be synthesized is a GLM with a gamma response. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data. The gamma distribution is a two-parameter family of continuous probability distributions. The gamma distribution is a generalization of the exponential distribution. The gamma distribution is frequently used to model right-skewed data.
-
-Lets start by removing any rows whose yards column is negative. This is because the gamma distribution cannot have negative values. 
-
-```{r}
-# Remove any rows whose yards column is negative
-football_data <- football_data[football_data$Yards >= 0.1, ]
-football_data <- football_data[football_data$Yards <= 10, ]
-```
-
-```{r}
-# Fit the model
-glm_model_gamma <- glm(Yards ~ ., data = football_data, family = Gamma(link = "log"))
-```
-
-Now lets use the step function to find the best model for the data.
-
-```{r} 
-#| output: FALSE
-#| eval: TRUE
-#| echo: TRUE
-glm_model_step <- step(glm_model_gamma, direction = "backward")
-summary(glm_model_step)
-```
-
-Running this reduced model yields the following results:
-
-```{r}
-reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
-summary(reduced_model)
-```
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a Scale-Location plot, and a Residuals vs Leverage plot, the assumptions of the model can be checked. 
-```{r}
-par(mfrow = c(2, 2))
-old.par = par(mar = c(3, 4, 1, 2))
-plot(glm_model_gamma)
-```
-
-
-
-
-
-
-
-
-# References {-}
-
-
-# Bibliography styles
-
-Here are two sample references:  @Feynman1963118 @Dirac1953888.
-
-By default, natbib will be used with the `authoryear` style, set in `classoption` variable in YAML. 
-You can sets extra options with `natbiboptions` variable in YAML header. Example 
-
-```
-natbiboptions: longnamesfirst,angle,semicolon
-```
-
-There are various more specific bibliography styles available at
-<https://support.stmdocs.in/wiki/index.php?title=Model-wise_bibliographic_style_files>. 
-To use one of these, add it in the header using, for example, `biblio-style: model1-num-names`.
-
-
-## Using CSL 
-
-If `cite-method` is set to `citeproc` in `elsevier_article()`, then pandoc is used for citations instead of `natbib`. In this case, the `csl` option is used to format the references. By default, this template will provide an appropriate style, but alternative `csl` files are available from <https://www.zotero.org/styles?q=elsevier>. These can be downloaded
-and stored locally, or the url can be used as in the example header.

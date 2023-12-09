@@ -246,7 +246,7 @@ predominantly pass-oriented league.
     Sports Analytics
 \end{keyword}
 \end{frontmatter}
-    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, sharp corners, interior hidden, enhanced, boxrule=0pt, borderline west={3pt}{0pt}{shadecolor}, breakable]}{\end{tcolorbox}}\fi
+    \ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[breakable, frame hidden, sharp corners, borderline west={3pt}{0pt}{shadecolor}, boxrule=0pt, enhanced, interior hidden]}{\end{tcolorbox}}\fi
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -775,8 +775,1181 @@ understanding the foundational relationships in our data to harnessing
 advanced computational techniques for more accurate and robust
 predictions in the dynamic and unpredictable context of NFL games.
 
-\hypertarget{decision-tree-modeling}{%
-\subsection{Decision Tree Modeling:}\label{decision-tree-modeling}}
+\hypertarget{glm-with-gamma-response}{%
+\subsection{GLM with Gamma Response}\label{glm-with-gamma-response}}
+
+First, lets start by importing the completely clean and ready to use
+dataset. This dataset was the result of procedures outlined in the data
+cleaning and preprocessing section.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Import the dataset}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"/Users/samlutz10/Desktop/STAT5405/Final Project/train\_ready.csv"}\NormalTok{)}
+
+\FunctionTok{str}\NormalTok{(football\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+'data.frame':   31007 obs. of  21 variables:
+ $ Quarter          : int  2 2 4 2 2 1 2 4 4 4 ...
+ $ Down             : int  1 1 1 2 1 1 1 1 1 1 ...
+ $ Distance         : int  10 10 10 10 10 10 10 10 10 10 ...
+ $ OffenseFormation : chr  "SINGLEBACK" "I_FORM" "I_FORM" "SINGLEBACK" ...
+ $ RB               : int  2 2 2 1 1 1 1 1 2 1 ...
+ $ TE               : int  1 1 2 1 1 2 1 1 1 1 ...
+ $ WR               : int  2 2 1 3 3 2 3 3 1 3 ...
+ $ DefendersInTheBox: int  8 7 8 6 7 8 6 7 7 7 ...
+ $ Yards            : int  1 12 3 -2 14 4 3 7 7 3 ...
+ $ Week             : int  3 9 14 2 2 2 17 11 17 3 ...
+ $ GameWeather      : chr  "clear" "overcast" "clear" "clear" ...
+ $ Temperature      : int  84 77 39 81 79 79 19 68 71 68 ...
+ $ Humidity         : int  25 62 55 45 48 48 36 54 66 42 ...
+ $ WindSpeed        : num  5 16 11 5 5 5 12 4 9 13 ...
+ $ WindDirection    : chr  "west" "south east" "none" "east" ...
+ $ GameHour         : int  15 9 3 3 13 12 2 6 15 12 ...
+ $ DL               : int  4 3 4 4 2 4 2 4 4 4 ...
+ $ LB               : int  3 4 3 2 4 3 4 2 3 2 ...
+ $ BL               : int  4 4 4 5 5 4 5 5 4 5 ...
+ $ YardsFromOwnGoal : int  40 84 79 21 86 25 49 25 65 54 ...
+ $ ScoreDelta       : int  -7 0 -13 -11 0 7 -11 41 -16 -8 ...
+\end{verbatim}
+
+Since we are only focused on the most common plays and not breakout
+runs, we will remove any data of 10 yards or more. This is due to the
+fact that plays resulting in 10 yards are considered to be just as
+successful are play resulting in more than 10 yards. In addition, any
+plays resulting in 0 or negative yards will be removed. This is due to
+the fact that these plays are considered to be unsuccessful.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove any rows whose yards column is greater than 30}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10} \SpecialCharTok{\&}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+The next model that will be synthesized is a GLM with a gamma response.
+The gamma distribution is a two-parameter family of continuous
+probability distributions. The gamma distribution is a generalization of
+the exponential distribution. The gamma distribution is frequently used
+to model right-skewed data. The gamma distribution is a two-parameter
+family of continuous probability distributions. The gamma distribution
+is a generalization of the exponential distribution. The gamma
+distribution is frequently used to model right-skewed data. The gamma
+distribution is a two-parameter family of continuous probability
+distributions. The gamma distribution is a generalization of the
+exponential distribution. The gamma distribution is frequently used to
+model right-skewed data. The gamma distribution is a two-parameter
+family of continuous probability distributions. The gamma distribution
+is a generalization of the exponential distribution. The gamma
+distribution is frequently used to model right-skewed data. The gamma
+distribution is a two-parameter family of continuous probability
+distributions. The gamma distribution is a generalization of the
+exponential distribution. The gamma distribution is frequently used to
+model right-skewed data. The gamma distribution is a two-parameter
+family of continuous probability distributions. The gamma distribution
+is a generalization of the exponential distribution. The gamma
+distribution is frequently used to model right-skewed data.
+
+Lets start by removing any rows whose yards column is negative. This is
+because the gamma distribution cannot have negative values.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove any rows whose yards column is negative}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}=} \FloatTok{0.1}\NormalTok{, ]}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+Lets start by fitting the null glm model. This model will be used as a
+baseline for comparison to the other models.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{glm\_model\_gamma }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Now we can run the full model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{glm\_model\_gamma }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Now lets use the step function to find the best model for the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{glm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(glm\_model\_gamma, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(glm\_model\_step)}
+\end{Highlighting}
+\end{Shaded}
+
+Running this reduced model yields the following results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\FunctionTok{summary}\NormalTok{(reduced\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+glm(formula = Yards ~ YardsFromOwnGoal + Distance + RB + WR + 
+    DefendersInTheBox + BL, family = Gamma(link = "log"), data = football_data)
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        1.8459028  0.0763143  24.188  < 2e-16 ***
+YardsFromOwnGoal  -0.0015976  0.0001702  -9.389  < 2e-16 ***
+Distance           0.0122438  0.0011600  10.555  < 2e-16 ***
+RB                 0.0008051  0.0111905   0.072 0.942643    
+WR                -0.0146274  0.0082184  -1.780 0.075118 .  
+DefendersInTheBox -0.0938411  0.0060793 -15.436  < 2e-16 ***
+BL                 0.0334060  0.0094814   3.523 0.000427 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for Gamma family taken to be 0.3704999)
+
+    Null deviance: 9177.3  on 21900  degrees of freedom
+Residual deviance: 8838.8  on 21894  degrees of freedom
+AIC: 93929
+
+Number of Fisher Scoring iterations: 5
+\end{verbatim}
+
+The regression model was fitted to predict Yards using several predictor
+variables. The intercept, representing the expected value of Yards when
+all other predictors are zero, is highly significant (t = 24.188, p
+\textless{} 2e-16), indicating that there is a substantial baseline
+value of Yards. This intercept is consistent with the notion that even
+in the absence of other factors, some yards are expected.
+
+Moving to individual predictors, YardsFromOwnGoal exhibits a negative
+coefficient (-0.0015976) with high significance (t = -9.389, p
+\textless{} 2e-16), implying that as a team moves away from their own
+goal, the expected yards tend to increase. Distance, with a positive
+coefficient of 0.0122438 and high significance (t = 10.555, p
+\textless{} 2e-16), suggests that longer distances on the field are
+associated with greater yards gained. These results align with intuitive
+expectations in football, where advancing towards the opponent's goal
+typically results in more yards gained.
+
+However, not all predictors are equally influential. RB, representing a
+certain player position, lacks significance (t = 0.072, p = 0.942643),
+indicating that the presence of RB does not significantly contribute to
+the variation in Yards. WR, on the other hand, has a marginally
+significant negative impact (t = -1.780, p = 0.075118), suggesting that
+having more Wide Receivers on the field might be associated with fewer
+yards gained. This result should be interpreted cautiously due to its
+marginal significance.
+
+DefendersInTheBox, with a negative coefficient of -0.0938411 and high
+significance (t = -15.436, p \textless{} 2e-16), implies that having
+more defenders close to the line of scrimmage is associated with a
+decrease in yards gained. BL (perhaps denoting Blockers), with a
+positive coefficient of 0.0334060 and significance (t = 3.523, p =
+0.000427), suggests that a strong blocking presence contributes
+positively to the yards gained.
+
+Turning attention to additional model diagnostics, the dispersion
+parameter for the Gamma family is 0.3704999. A lower dispersion
+parameter indicates that the model is well-fitted to the data. The null
+deviance (9177.3) and residual deviance (8838.8) provide insights into
+model improvement. The decrease in deviance suggests that the predictors
+collectively enhance the model's explanatory power. The Akaike
+Information Criterion (AIC) of 93929, while relatively high, serves as a
+trade-off between goodness of fit and model complexity. Model
+improvement might be achieved through further refinement or the
+consideration of interaction terms.
+
+In conclusion, this regression model, while generally well-fitted and
+insightful, warrants careful consideration of the significance and
+practical implications of each predictor. Adjustments may be made to
+enhance interpretability and simplify the model without compromising its
+explanatory power.
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
+Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
+of the model can be checked.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(glm\_model\_gamma)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
+
+Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
+\end{verbatim}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-8-1.pdf}
+
+}
+
+\end{figure}
+
+Above, we have four different plots called Residuals vs Fitted, Q-Q
+Residuals, Scale-Location, and Residuals vs Leverage. The Residuals vs
+Fitted plot shows that the residuals are randomly distributed around the
+0 line. This indicates that the residuals are normally distributed.
+Although, there are some outliers that are far away from the 0 line.
+
+The Q-Q Residuals plot shows that the residuals are, for the most part,
+normally distributed. However, there are some outliers that are far away
+from the 0 line. In addition, the line begins to veer away from the line
+of normality on the right side of the plot.
+
+The Scale-Location plot does show a strange pattern in the residuals. It
+appears to be a bouncing ball pattern where the residuals fall to zero
+and then increase again, only to eventually come back down to zero. The
+line can be most aptly desrcibed by the path a ball bouncing a long a
+table would make.
+
+The presence of a bouncing ball pattern in the Scale-Location plot of
+residuals may be indicative of systematic errors or trends in the data
+that the model is not capturing adequately.
+
+The bouncing ball pattern could be a signal of non-linearity in the
+relationship between the predictors and the response variable. It
+indicates that as the predicted values of the response variable change,
+the variability of the residuals also changes. The residuals first
+decrease, then increase, and finally decrease again, forming a pattern
+resembling a bouncing ball.
+
+In addition, the presence of outliers or influential data points could
+lead to the observed pattern. These points might have a disproportionate
+impact on the model's fit, causing the residuals to exhibit a bouncing
+ball behavior.
+
+The Residuals vs Leverage plot shows that there are some outliers that
+are far away from the 0 line. These outliers could be the cause of the
+bouncing ball pattern in the Scale-Location plot.
+
+Lets now rerun a new model without the outliers. Lets first identify the
+outliers by calculating the Cook's distance for each observation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Identify the outliers}
+\NormalTok{cooksd }\OtherTok{\textless{}{-}} \FunctionTok{cooks.distance}\NormalTok{(glm\_model\_gamma)}
+\FunctionTok{plot}\NormalTok{(cooksd, }\AttributeTok{pch=}\StringTok{"*"}\NormalTok{, }\AttributeTok{cex=}\DecValTok{2}\NormalTok{, }\AttributeTok{main=}\StringTok{"Influential Obs by Cooks distance"}\NormalTok{)  }\CommentTok{\# plot cook\textquotesingle{}s distance}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =} \DecValTok{4}\SpecialCharTok{*}\FunctionTok{mean}\NormalTok{(cooksd, }\AttributeTok{na.rm=}\NormalTok{T), }\AttributeTok{col=}\StringTok{"red"}\NormalTok{)  }\CommentTok{\# add cutoff line}
+\FunctionTok{text}\NormalTok{(}\AttributeTok{x=}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(cooksd)}\SpecialCharTok{+}\DecValTok{1}\NormalTok{, }\AttributeTok{y=}\NormalTok{cooksd, }\AttributeTok{labels=}\FunctionTok{ifelse}\NormalTok{(cooksd}\SpecialCharTok{\textgreater{}}\DecValTok{4}\SpecialCharTok{*}\FunctionTok{mean}\NormalTok{(cooksd, }\AttributeTok{na.rm=}\NormalTok{T),}\FunctionTok{names}\NormalTok{(cooksd),}\StringTok{""}\NormalTok{), }\AttributeTok{col=}\StringTok{"red"}\NormalTok{)  }\CommentTok{\# add labels}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-9-1.pdf}
+
+}
+
+\end{figure}
+
+Based on the Cook's distance plot, there are several outliers that are
+far away from the 0 line. These outliers will be removed from the
+dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove these outliers based on cooks cooks}
+\NormalTok{extpts }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{abs}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(glm\_model\_gamma)) }\SpecialCharTok{\textgreater{}} \DecValTok{3}\SpecialCharTok{*}\FunctionTok{sd}\NormalTok{(}\FunctionTok{residuals}\NormalTok{(glm\_model\_gamma)))}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[}\SpecialCharTok{{-}}\NormalTok{extpts,]}
+
+\CommentTok{\#Now lets split the data into a training and testing set}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+\NormalTok{train\_index }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{nrow}\NormalTok{(football\_data), }\FloatTok{0.8}\SpecialCharTok{*}\FunctionTok{nrow}\NormalTok{(football\_data))}
+\NormalTok{train\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[train\_index,]}
+\NormalTok{test\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[}\SpecialCharTok{{-}}\NormalTok{train\_index,]}
+\end{Highlighting}
+\end{Shaded}
+
+In order to have another fair comparison, lets run the null model again
+without outliers.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{glm\_model\_gamma }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ train\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Now lets rerun the model without the outliers.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Fit the model}
+\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data =}\NormalTok{ train\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
+\FunctionTok{summary}\NormalTok{(reduced\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+glm(formula = Yards ~ YardsFromOwnGoal + Distance + RB + WR + 
+    DefendersInTheBox + BL, family = Gamma(link = "log"), data = train_data)
+
+Coefficients:
+                   Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        1.846691   0.085400  21.624  < 2e-16 ***
+YardsFromOwnGoal  -0.001445   0.000190  -7.606 2.98e-14 ***
+Distance           0.013320   0.001304  10.217  < 2e-16 ***
+RB                 0.007757   0.012486   0.621   0.5344    
+WR                -0.007886   0.009142  -0.863   0.3883    
+DefendersInTheBox -0.095197   0.006802 -13.996  < 2e-16 ***
+BL                 0.026601   0.010603   2.509   0.0121 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for Gamma family taken to be 0.3698381)
+
+    Null deviance: 7311.3  on 17519  degrees of freedom
+Residual deviance: 7038.5  on 17513  degrees of freedom
+AIC: 75079
+
+Number of Fisher Scoring iterations: 5
+\end{verbatim}
+
+Running this reduced model yields the following results:
+
+The regression model was fitted to predict Yards using several predictor
+variables. The intercept, representing the expected value of Yards when
+all other predictors are zero, is highly significant (t = 21.624, p
+\textless{} 2e-16), indicating that there is a substantial baseline
+value of Yards. This intercept is consistent with the notion that even
+in the absence of other factors, some yards are expected.
+
+Moving to individual predictors, YardsFromOwnGoal exhibits a negative
+coefficient (-0.001445), implying that as a team moves away from their
+own goal, the expected yards tend to increase. Distance, with a positive
+coefficient of 0.0.013320 and high significance (t = 10.217, p
+\textless{} 2e-16), suggests that longer distances on the field are
+associated with greater yards gained. These results align with intuitive
+expectations in football, where advancing towards the opponent's goal
+typically results in more yards gained.
+
+However, not all predictors are equally influential. RB, representing a
+certain player position, lacks significance (t = 0.621, p = 0.5344),
+indicating that the presence of RB does not significantly contribute to
+the variation in Yards. WR, on the other hand, has a marginally
+significant negative impact (t = -0.863, p = 0.3883), suggesting that
+having more Wide Receivers on the field might be associated with fewer
+yards gained. This result should be interpreted cautiously due to its
+marginal significance.
+
+DefendersInTheBox, with a negative coefficient of -0.095197 and high
+significance (t = -13.996, p \textless{} 2e-16), implies that having
+more defenders close to the line of scrimmage is associated with a
+decrease in yards gained. BL (denoting backline), with a positive
+coefficient of 0.026601 and significance (t = 2.509, p = 0.0121),
+suggests that a strong backline presence contributes positively to the
+yards gained.
+
+Now we can test for model adequacy. This will be done by comparing the
+fitted full model with the null model. We do this to see whether all the
+predictors taken together are useful for explaining yards above the
+intercept alone. The null hypothesis is that the null model is just as
+adequate as the reduced model. On the other hand, the alternative
+hypothesis is that the reduced model is more adequate than the null
+model. The confidence level for this test, \(\alpha\), is 0.05.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{with}\NormalTok{(reduced\_model, }\FunctionTok{cbind}\NormalTok{(}\AttributeTok{deviance =}\NormalTok{ null.deviance }\SpecialCharTok{{-}}\NormalTok{ deviance, }
+                      \AttributeTok{df =}\NormalTok{ df.null }\SpecialCharTok{{-}}\NormalTok{ df.residual,}
+                      \AttributeTok{p =} \FunctionTok{pchisq}\NormalTok{(null.deviance }\SpecialCharTok{{-}}\NormalTok{ deviance, }
+\NormalTok{                      df.null }\SpecialCharTok{{-}}\NormalTok{ df.residual, }
+                      \AttributeTok{lower.tail =} \ConstantTok{FALSE}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+     deviance df            p
+[1,] 272.7759  6 5.525254e-56
+\end{verbatim}
+
+With a p-value of \$ 5.525e\^{}(-56) \$, which is less than the
+confidence level of 0.05, we reject the null hypothesis. This means that
+the reduced model is more adequate than the null model. In other words,
+the predictors in the reduced model are useful for explaining yards
+above the intercept alone.
+
+We can also compare the Akaike Information Criterion (AIC) from the
+fitted reduced model and the null model. The better model is the one
+which gives the smaller AIC:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{AIC}\NormalTok{(glm\_model\_gamma, reduced\_model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                df      AIC
+glm_model_gamma  2 75777.76
+reduced_model    8 75078.85
+\end{verbatim}
+
+The AIC for the null model is 75777.76. The AIC for the reduced model is
+75078.85. The reduced model has a smaller AIC than the null model. This
+means that the reduced model is a better fit for the data than the null
+model.
+
+Testing for overdispersion, we can calculate the dispersion parameter
+for the fitted model. The dispersion parameter is the ratio of the
+residual deviance to the residual degrees of freedom. The dispersion
+parameter should be close to 1. If it is much larger than 1, then the
+model is overdispersed. If it is much smaller than 1, then the model is
+underdispersed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(disp.est }\OtherTok{\textless{}{-}}\NormalTok{ reduced\_model}\SpecialCharTok{$}\NormalTok{deviance}\SpecialCharTok{/}\NormalTok{reduced\_model}\SpecialCharTok{$}\NormalTok{df.residual)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.4019009
+\end{verbatim}
+
+With a dispersion parameter of 0.4019009, which is less than 1, the
+model is underdispersed. This means that the model is not accounting for
+all the variability in the data.
+
+Turning attention to the performance of the test set on the model, we
+will predict the yards gained for the test set using the model that was
+fit on the training set.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Predict the yards gained for the test set}
+\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(reduced\_model, }\AttributeTok{newdata =}\NormalTok{ test\_data, }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Now lets calculate the mean squared error and the mean absolute error
+for the test set.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Calculate the mean squared error}
+\NormalTok{mse }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{((test\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{{-}}\NormalTok{ predicted\_yards)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{mse}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 5.515282
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Calculate the mean absolute error}
+\NormalTok{mae }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(}\FunctionTok{abs}\NormalTok{(test\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{{-}}\NormalTok{ predicted\_yards))}
+\NormalTok{mae}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 1.909325
+\end{verbatim}
+
+The mean squared error for the test set is 5.515282 while the mean
+absolute error for the test set is 1.909325. These values are relatively
+low, indicating that the model is a good fit for the data.
+
+\hypertarget{summary-and-conclusion}{%
+\section{Summary and Conclusion}\label{summary-and-conclusion}}
+
+In this project, we developed a predictive model to forecast the yards
+gained after a handoff in NFL games. We began by exploring the data and
+conducting a comprehensive exploratory data analysis (EDA) to understand
+the underlying structure and characteristics of the data. This step
+involved visualizing the distribution of key variables, identifying
+patterns and outliers, and exploring correlations and interactions
+between predictors. Data visualization, through techniques like scatter
+plots, histograms, and heatmaps, offered an intuitive understanding of
+data distributions, correlations, and potential clusters within the
+dataset. EDA-informed feature selection and engineering strategies
+highlighted potential predictors that are most informative of yards
+gained after a handoff.
+
+During preprocessing, we also undertook feature engineering to create
+new variables that may have a stronger relationship with the target
+variable. This included interaction terms that capture the combined
+effect of two predictors, polynomial features for capturing non-linear
+relationships, and domain-specific features that encapsulate strategic
+elements of the game.
+
+With a clean and prepared dataset, we then proceeded to develop our MLR,
+GLM, and XGBoost models. For MLR and GLM, the model's performance was
+evaluated using metrics such as the Mean Squared Error (MSE) and the
+Mean Absolute Error (MAE). For the XGBoost model, along with MSE and
+MAE, we assessed performance using additional metrics like the R-squared
+for regression tasks and feature importance scores to understand which
+variables are most predictive.
+
+The final step was to interpret the models in the context of NFL games.
+This involved translating the statistical outputs into actionable
+insights for coaches and team strategists, providing recommendations on
+how to leverage the results for competitive advantage in play-calling
+and player evaluation.
+
+The model picked as the best model for determining yards per carry was
+selected based on both performance and interpretability.
+
+Interpretability is critical in the context of NFL games, where the
+model's outputs must be translated into actionable insights for coaches
+and team strategists. The GLM with a Gamma response was selected as the
+best model for its interpretability and performance. The GLM with a
+Gamma response is a powerful extension of the linear model framework,
+allowing for response variables that have error distribution models
+other than a normal distribution. GLMs are particularly useful when
+dealing with non-normal response variables. With the GLM model, we can
+directly see the affects each predictor has on the outcome of the play.
+For instance, the coefficient for each predictor can be interpreted as
+the change in the response variable for a unit change in the predictor
+variable, while holding all other predictors constant. A negative
+coefficient indicates that as the predictor variable increases, the
+response variable decreases. On the other hand, a positive coefficient
+indicates that as the predictor variable increases, the response
+variable increases. Therefore, predictors with a positive coefficient
+contribute to the yards per carry increasing, while the predictors with
+a negative coefficient contribute to the yards per carry decreasing.
+
+As for performance, the GLM with a Gamma response had a mean squared
+error of 5.515282 and a mean absolute error of 1.909325. These values
+are relatively low, indicating that the model is a good fit for the
+data. Compared to the linear model, the GLM with a Gamma response had a
+lower mean squared error and a lower mean absolute error. This indicates
+that the GLM with a Gamma response is a better fit for the data than the
+linear model. However, the XGBoost model had a lower mean squared error
+and a lower mean absolute error than the GLM with a Gamma response. This
+indicates that the XGBoost model is a better fit for the data than the
+GLM with a Gamma response. The issue of the XGBost model is that it is
+not as interpretable as the GLM with a Gamma response. Therefore, the
+GLM with a Gamma response was selected as the best model for determining
+yards per carry.
+
+Based on the data gathered above, the GLM model states that the higher
+number of defenders that are in the box (the number defenders employed
+in an area close enough to the line of scrimmage where they can directly
+impact a rushing attempt by the offense) increases, the yards gained per
+carry decreases. Therefore, running the ball should not be attempted
+when there are a high number of defenders in the box. Any play with more
+than 6 defenders in the box will result in a play with less than average
+number of yards. In other words, the offense should only run the ball
+when there are 6 or more defenders in the box when only attempting to
+gain a yard or less.
+
+Furthermore, as the offense gets closer to the endzone, the yards gained
+per carry decreases. This is due to the fact that there is less yardage
+for the offense to gain. In addition, as the distance to the endzone
+decreases, the defense will have more defenders in a smaller area. This
+means that safeties and cornerbacks will be closer to the line of
+scrimmage, making it more difficult for the offense to gain yards, or
+for breakout plays to occur.
+
+\hypertarget{appendix}{%
+\section{Appendix}\label{appendix}}
+
+\hypertarget{multiple-linear-regression}{%
+\subsection{Multiple Linear
+Regression}\label{multiple-linear-regression}}
+
+First, lets start by importing the completely clean and ready to use
+dataset. This dataset was the result of procedures outlined in the data
+cleaning and preprocessing section.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Import the dataset}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"/Users/samlutz10/Desktop/STAT5405/Final Project/train\_ready.csv"}\NormalTok{)}
+
+\FunctionTok{str}\NormalTok{(football\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+'data.frame':   31007 obs. of  21 variables:
+ $ Quarter          : int  2 2 4 2 2 1 2 4 4 4 ...
+ $ Down             : int  1 1 1 2 1 1 1 1 1 1 ...
+ $ Distance         : int  10 10 10 10 10 10 10 10 10 10 ...
+ $ OffenseFormation : chr  "SINGLEBACK" "I_FORM" "I_FORM" "SINGLEBACK" ...
+ $ RB               : int  2 2 2 1 1 1 1 1 2 1 ...
+ $ TE               : int  1 1 2 1 1 2 1 1 1 1 ...
+ $ WR               : int  2 2 1 3 3 2 3 3 1 3 ...
+ $ DefendersInTheBox: int  8 7 8 6 7 8 6 7 7 7 ...
+ $ Yards            : int  1 12 3 -2 14 4 3 7 7 3 ...
+ $ Week             : int  3 9 14 2 2 2 17 11 17 3 ...
+ $ GameWeather      : chr  "clear" "overcast" "clear" "clear" ...
+ $ Temperature      : int  84 77 39 81 79 79 19 68 71 68 ...
+ $ Humidity         : int  25 62 55 45 48 48 36 54 66 42 ...
+ $ WindSpeed        : num  5 16 11 5 5 5 12 4 9 13 ...
+ $ WindDirection    : chr  "west" "south east" "none" "east" ...
+ $ GameHour         : int  15 9 3 3 13 12 2 6 15 12 ...
+ $ DL               : int  4 3 4 4 2 4 2 4 4 4 ...
+ $ LB               : int  3 4 3 2 4 3 4 2 3 2 ...
+ $ BL               : int  4 4 4 5 5 4 5 5 4 5 ...
+ $ YardsFromOwnGoal : int  40 84 79 21 86 25 49 25 65 54 ...
+ $ ScoreDelta       : int  -7 0 -13 -11 0 7 -11 41 -16 -8 ...
+\end{verbatim}
+
+Since we are only focused on the most common plays and not breakout
+runs, we will remove any data of 10 yards or more. This is due to the
+fact that plays resulting in 10 yards are considered to be just as
+successful are play resulting in more than 10 yards. In addition, any
+plays resulting in 0 or negative yards will be removed. This is due to
+the fact that these plays are considered to be unsuccessful.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Remove any rows whose yards column is greater than 30}
+\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10} \SpecialCharTok{\&}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{, ]}
+\end{Highlighting}
+\end{Shaded}
+
+Lets now look at the histogram of Yards to get a better understanding of
+the distribution of the response variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Histogram of Yards}
+\FunctionTok{hist}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, }\AttributeTok{main =} \StringTok{"Histogram of Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-21-1.pdf}
+
+}
+
+\end{figure}
+
+Based on the histogram above, it is apparent that the number of yards is
+skewed to the right. In order to address this issue, the Box-Cox
+transformation will be utilized. This will help to normalize the
+distribution of the response variable. The Box-Cox transformation can
+transform non-normal data into normal data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MASS)}
+\NormalTok{lambda\_null }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-22-1.pdf}
+
+}
+
+\end{figure}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_null)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 
+    1, data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.30438 -0.13785 -0.02786  0.12559  0.36373 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.3044     0.0013    1003   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1924 on 21900 degrees of freedom
+\end{verbatim}
+
+Now the full model using all of the predictors will be created. In this
+full model, there will be 0 interactions between the predictors. The
+same process using the Box-Cox transformation will be used to normalize
+the distribution of the response variable.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-25-1.pdf}
+
+}
+
+\end{figure}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
+    ., data = football_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.4747 -0.1367  0.0041  0.1391  0.5492 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 1.533e+00  4.252e-01   3.605 0.000313 ***
+Quarter                     2.045e-04  1.118e-03   0.183 0.854945    
+Down                        5.107e-03  2.244e-03   2.276 0.022858 *  
+Distance                    3.834e-03  4.131e-04   9.281  < 2e-16 ***
+OffenseFormationEMPTY       2.448e-02  1.924e-01   0.127 0.898746    
+OffenseFormationI_FORM     -1.747e-02  1.882e-01  -0.093 0.926043    
+OffenseFormationJUMBO      -1.027e-01  1.885e-01  -0.545 0.585728    
+OffenseFormationPISTOL     -1.521e-02  1.883e-01  -0.081 0.935626    
+OffenseFormationSHOTGUN    -2.954e-02  1.882e-01  -0.157 0.875255    
+OffenseFormationSINGLEBACK -1.847e-02  1.882e-01  -0.098 0.921801    
+OffenseFormationUNKNOWN    -4.269e-02  2.104e-01  -0.203 0.839222    
+OffenseFormationWILDCAT    -1.580e-04  1.898e-01  -0.001 0.999336    
+RB                         -3.485e-03  5.875e-03  -0.593 0.553054    
+TE                         -1.421e-03  4.898e-03  -0.290 0.771792    
+WR                         -6.871e-03  4.992e-03  -1.377 0.168679    
+DefendersInTheBox          -2.749e-02  1.945e-03 -14.135  < 2e-16 ***
+Week                       -2.282e-04  3.435e-04  -0.664 0.506415    
+GameWeathernone             7.253e-03  4.231e-03   1.714 0.086506 .  
+GameWeatherovercast        -3.271e-04  3.110e-03  -0.105 0.916235    
+GameWeatherrain            -4.791e-03  6.303e-03  -0.760 0.447222    
+GameWeathersnow            -8.656e-03  1.815e-02  -0.477 0.633395    
+Temperature                -3.019e-04  1.007e-04  -2.997 0.002725 ** 
+Humidity                   -2.216e-05  6.295e-05  -0.352 0.724800    
+WindSpeed                   1.854e-05  3.094e-04   0.060 0.952216    
+WindDirectionnone          -9.389e-03  8.146e-03  -1.153 0.249086    
+WindDirectionnorth         -2.802e-03  9.503e-03  -0.295 0.768153    
+WindDirectionnorth east    -8.067e-03  8.197e-03  -0.984 0.325065    
+WindDirectionnorth west    -4.240e-03  8.276e-03  -0.512 0.608408    
+WindDirectionsouth         -7.687e-03  9.009e-03  -0.853 0.393538    
+WindDirectionsouth east    -4.907e-03  8.529e-03  -0.575 0.565104    
+WindDirectionsouth west    -5.235e-03  8.041e-03  -0.651 0.515082    
+WindDirectionwest          -5.371e-03  9.581e-03  -0.561 0.575079    
+GameHour                    5.345e-04  2.913e-04   1.835 0.066531 .  
+DL                         -2.015e-03  3.461e-02  -0.058 0.953559    
+LB                         -3.061e-03  3.469e-02  -0.088 0.929677    
+BL                          5.420e-03  3.469e-02   0.156 0.875840    
+YardsFromOwnGoal           -4.017e-04  5.336e-05  -7.529 5.33e-14 ***
+ScoreDelta                 -2.177e-04  1.202e-04  -1.812 0.070023 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1881 on 21863 degrees of freedom
+Multiple R-squared:  0.04641,   Adjusted R-squared:  0.04479 
+F-statistic: 28.76 on 37 and 21863 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Based on the results of the full model, the model shows which predictors
+are statistically significant. The most significant predictors are
+Distance, DefendersInTheBox, and YardsFromOwnGoal. Creating scatter
+plots of the response variable versus each of these predictors will help
+to gain a better understanding of how these variables affect the
+predicted yards.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. Distance}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-28-1.pdf}
+
+}
+
+\end{figure}
+
+Looking at this scatter plot of Yards vs Distance, there appears to only
+be a sinusoial relationship between the two variables. Therefore, when a
+reduced model is created, a sine function will be used to model the
+relationship between the two variables.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. Defenders In The Box}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Yards vs. Defenders In The Box"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Defenders In The Box"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-29-1.pdf}
+
+}
+
+\end{figure}
+
+Looking at this scatter plot of Yards vs Defenders In The Box, there
+appears to be a quadratic function relationship between the two
+variables. Therefore, when a reduced model is created, the Defenders In
+The Box variable will be squared in order to capture this relationship
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of yards vs. YardsFromOwnGoal}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Yards vs. Yards From Own Goal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Yards From Own Goal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-30-1.pdf}
+
+}
+
+\end{figure}
+
+The scatterplot of Yards vs Yards From Own Goal shows that there is a
+linear relationship between the two variables. Therefore, when a reduced
+model is created, the Yards From Own Goal variable will not be changed
+since the model is already capturing this linear relationship.
+
+In order to capture these relationships between variables, a new, full
+model will be synthesized. This model will include the Distance variable
+with a sine function and the Defenders In The Box variable squared.
+However, the Box-Cox transformation will need to be run again.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-31-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(lambda\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Length Class  Mode   
+x 100    -none- numeric
+y 100    -none- numeric
+\end{verbatim}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
+    Quarter + Down + sin(Distance) + OffenseFormation + RB + 
+        TE + WR + DefendersInTheBox^2 + Week + GameWeather + 
+        Temperature + Humidity + WindSpeed + WindDirection + 
+        GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, 
+    data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.43047 -0.13761  0.00579  0.13964  0.54723 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 1.572e+00  4.257e-01   3.693 0.000222 ***
+Quarter                     4.560e-04  1.119e-03   0.407 0.683760    
+Down                        6.823e-04  2.260e-03   0.302 0.762764    
+sin(Distance)              -1.309e-02  2.557e-03  -5.118 3.11e-07 ***
+OffenseFormationEMPTY       1.810e-02  1.926e-01   0.094 0.925163    
+OffenseFormationI_FORM     -2.044e-02  1.885e-01  -0.108 0.913627    
+OffenseFormationJUMBO      -1.057e-01  1.888e-01  -0.560 0.575549    
+OffenseFormationPISTOL     -1.896e-02  1.886e-01  -0.101 0.919903    
+OffenseFormationSHOTGUN    -3.184e-02  1.884e-01  -0.169 0.865822    
+OffenseFormationSINGLEBACK -2.233e-02  1.884e-01  -0.119 0.905657    
+OffenseFormationUNKNOWN    -4.517e-02  2.107e-01  -0.214 0.830241    
+OffenseFormationWILDCAT    -3.616e-03  1.901e-01  -0.019 0.984823    
+RB                         -3.657e-03  5.883e-03  -0.622 0.534153    
+TE                         -9.796e-04  4.904e-03  -0.200 0.841678    
+WR                         -7.130e-03  4.999e-03  -1.426 0.153781    
+DefendersInTheBox          -2.953e-02  1.930e-03 -15.301  < 2e-16 ***
+Week                       -1.953e-04  3.439e-04  -0.568 0.570043    
+GameWeathernone             7.612e-03  4.237e-03   1.797 0.072415 .  
+GameWeatherovercast        -2.761e-04  3.114e-03  -0.089 0.929343    
+GameWeatherrain            -4.145e-03  6.312e-03  -0.657 0.511335    
+GameWeathersnow            -7.028e-03  1.817e-02  -0.387 0.698943    
+Temperature                -2.819e-04  1.008e-04  -2.795 0.005193 ** 
+Humidity                   -3.439e-05  6.302e-05  -0.546 0.585250    
+WindSpeed                   7.867e-05  3.097e-04   0.254 0.799487    
+WindDirectionnone          -8.918e-03  8.157e-03  -1.093 0.274260    
+WindDirectionnorth         -2.268e-03  9.516e-03  -0.238 0.811644    
+WindDirectionnorth east    -7.485e-03  8.208e-03  -0.912 0.361843    
+WindDirectionnorth west    -3.958e-03  8.287e-03  -0.478 0.632975    
+WindDirectionsouth         -7.636e-03  9.021e-03  -0.846 0.397306    
+WindDirectionsouth east    -4.302e-03  8.541e-03  -0.504 0.614508    
+WindDirectionsouth west    -5.156e-03  8.052e-03  -0.640 0.521962    
+WindDirectionwest          -4.050e-03  9.593e-03  -0.422 0.672902    
+GameHour                    4.157e-04  2.914e-04   1.427 0.153660    
+DL                         -1.108e-03  3.465e-02  -0.032 0.974487    
+LB                         -1.580e-03  3.473e-02  -0.045 0.963712    
+BL                          7.304e-03  3.473e-02   0.210 0.833457    
+YardsFromOwnGoal           -4.871e-04  5.229e-05  -9.315  < 2e-16 ***
+ScoreDelta                 -2.299e-04  1.203e-04  -1.911 0.055994 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1883 on 21863 degrees of freedom
+Multiple R-squared:  0.0438,    Adjusted R-squared:  0.04218 
+F-statistic: 27.06 on 37 and 21863 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+Now lets use the step function to find the best model for the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(lm\_model\_full, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_step)}
+\end{Highlighting}
+\end{Shaded}
+
+This new reduced model needs to be run similar to that of the previous
+models utilizing the Box-Cox transformation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-35-1.pdf}
+
+}
+
+\end{figure}
+
+The best lambda value for the Box-Cox tranformation is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0.2222222
+\end{verbatim}
+
+Now the Box-Cox tranformation will be applied to the variable Yards with
+the best lambda value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm\_model\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data)}
+\FunctionTok{summary}\NormalTok{(lm\_model\_reduced)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+Call:
+lm(formula = (Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ 
+    sin(Distance) + WR + DefendersInTheBox^2 + Temperature + 
+        BL + YardsFromOwnGoal, data = football_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.42892 -0.13844  0.00668  0.14027  0.47618 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        1.518e+00  2.254e-02  67.351  < 2e-16 ***
+sin(Distance)     -1.536e-02  2.198e-03  -6.989 2.85e-12 ***
+WR                -5.522e-03  2.406e-03  -2.295 0.021750 *  
+DefendersInTheBox -3.049e-02  1.865e-03 -16.345  < 2e-16 ***
+Temperature       -2.167e-04  7.435e-05  -2.914 0.003574 ** 
+BL                 9.724e-03  2.939e-03   3.309 0.000939 ***
+YardsFromOwnGoal  -5.382e-04  5.167e-05 -10.417  < 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.1886 on 21894 degrees of freedom
+Multiple R-squared:  0.0394,    Adjusted R-squared:  0.03914 
+F-statistic: 149.7 on 6 and 21894 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
+Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
+of the model can be checked.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(lm\_model\_reduced)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-38-1.pdf}
+
+}
+
+\end{figure}
+
+Based on the plots above, the normality assumption is not violated, as
+the Q-Q Residuals plot shows that the residuals are mainly normally
+distributed.
+
+In order to gain a better understanding of how these variables affect
+the predicted yards, scatter plots of the predicted yards versus each of
+the predictors will be created. However, the only scatter plots that
+will be synthesized are those that have the three highest t values:
+Distance, DefendersInTheBox, and YardsFromOwnGoal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_model\_reduced, football\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. Distance}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-40-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. DefendersInTheBox}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. DefendersInTheBox"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"DefendersInTheBox"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-41-1.pdf}
+
+}
+
+\end{figure}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Scatter plot of predicted yards vs. YardsFromOwnGoal}
+\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-42-1.pdf}
+
+}
+
+\end{figure}
+
+\hypertarget{decision-tree-model}{%
+\subsection{Decision-Tree Model}\label{decision-tree-model}}
 
 First, lets start by importing the completely clean and ready to use
 dataset. This dataset was the result of procedures outlined in the data
@@ -1001,7 +2174,7 @@ machine learning intricacies.
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-6-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-48-1.pdf}
 
 }
 
@@ -1136,7 +2309,7 @@ Next we can plot a scatter plot of the actual vs predicted values:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-10-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-52-1.pdf}
 
 }
 
@@ -1233,7 +2406,7 @@ Again we can plot the actual vs predicted values:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-13-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-55-1.pdf}
 
 }
 
@@ -1252,7 +2425,7 @@ residuals plot:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-14-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-56-1.pdf}
 
 }
 
@@ -1281,743 +2454,11 @@ residuals plot:
 
 \begin{figure}[H]
 
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-16-1.pdf}
+{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-58-1.pdf}
 
 }
 
 \end{figure}
-
-\hypertarget{analysis-of-results}{%
-\subsubsection{Analysis of Results:}\label{analysis-of-results}}
-
-\hypertarget{appendix}{%
-\section{Appendix}\label{appendix}}
-
-\hypertarget{multiple-linear-regression}{%
-\subsection{Multiple Linear
-Regression}\label{multiple-linear-regression}}
-
-First, lets start by importing the completely clean and ready to use
-dataset. This dataset was the result of procedures outlined in the data
-cleaning and preprocessing section.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Import the dataset}
-\NormalTok{football\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"/Users/samlutz10/Desktop/STAT5405/Final Project/train\_ready.csv"}\NormalTok{)}
-
-\FunctionTok{str}\NormalTok{(football\_data)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-'data.frame':   31007 obs. of  21 variables:
- $ Quarter          : int  2 2 4 2 2 1 2 4 4 4 ...
- $ Down             : int  1 1 1 2 1 1 1 1 1 1 ...
- $ Distance         : int  10 10 10 10 10 10 10 10 10 10 ...
- $ OffenseFormation : chr  "SINGLEBACK" "I_FORM" "I_FORM" "SINGLEBACK" ...
- $ RB               : int  2 2 2 1 1 1 1 1 2 1 ...
- $ TE               : int  1 1 2 1 1 2 1 1 1 1 ...
- $ WR               : int  2 2 1 3 3 2 3 3 1 3 ...
- $ DefendersInTheBox: int  8 7 8 6 7 8 6 7 7 7 ...
- $ Yards            : int  1 12 3 -2 14 4 3 7 7 3 ...
- $ Week             : int  3 9 14 2 2 2 17 11 17 3 ...
- $ GameWeather      : chr  "clear" "overcast" "clear" "clear" ...
- $ Temperature      : int  84 77 39 81 79 79 19 68 71 68 ...
- $ Humidity         : int  25 62 55 45 48 48 36 54 66 42 ...
- $ WindSpeed        : num  5 16 11 5 5 5 12 4 9 13 ...
- $ WindDirection    : chr  "west" "south east" "none" "east" ...
- $ GameHour         : int  15 9 3 3 13 12 2 6 15 12 ...
- $ DL               : int  4 3 4 4 2 4 2 4 4 4 ...
- $ LB               : int  3 4 3 2 4 3 4 2 3 2 ...
- $ BL               : int  4 4 4 5 5 4 5 5 4 5 ...
- $ YardsFromOwnGoal : int  40 84 79 21 86 25 49 25 65 54 ...
- $ ScoreDelta       : int  -7 0 -13 -11 0 7 -11 41 -16 -8 ...
-\end{verbatim}
-
-Since we are only focused on the most common plays and not breakout
-runs, we will remove any data of 10 yards or more. This is due to the
-fact that plays resulting in 10 yards are considered to be just as
-successful are play resulting in more than 10 yards. In addition, any
-plays resulting in 0 or negative yards will be removed. This is due to
-the fact that these plays are considered to be unsuccessful.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Remove any rows whose yards column is greater than 30}
-\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10} \SpecialCharTok{\&}\NormalTok{ football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{, ]}
-\end{Highlighting}
-\end{Shaded}
-
-Lets now look at the histogram of Yards to get a better understanding of
-the distribution of the response variable.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Histogram of Yards}
-\FunctionTok{hist}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, }\AttributeTok{main =} \StringTok{"Histogram of Yards"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Frequency"}\NormalTok{, }\AttributeTok{col =} \StringTok{"blue"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-19-1.pdf}
-
-}
-
-\end{figure}
-
-Based on the histogram above, it is apparent that the number of yards is
-skewed to the right. In order to address this issue, the Box-Cox
-transformation will be utilized. This will help to normalize the
-distribution of the response variable. The Box-Cox transformation can
-transform non-normal data into normal data.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(MASS)}
-\NormalTok{lambda\_null }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data))}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-20-1.pdf}
-
-}
-
-\end{figure}
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)]}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 0.2222222
-\end{verbatim}
-
-Now the Box-Cox tranformation will be applied to the variable Yards with
-the best lambda value.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lm\_model\_null }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_null}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \DecValTok{1}\NormalTok{, }\AttributeTok{data =}\NormalTok{ football\_data)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_null)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-
-Call:
-lm(formula = (Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 
-    1, data = football_data)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--0.30438 -0.13785 -0.02786  0.12559  0.36373 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)    
-(Intercept)   1.3044     0.0013    1003   <2e-16 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.1924 on 21900 degrees of freedom
-\end{verbatim}
-
-Now the full model using all of the predictors will be created. In this
-full model, there will be 0 interactions between the predictors. The
-same process using the Box-Cox transformation will be used to normalize
-the distribution of the response variable.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data))}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-23-1.pdf}
-
-}
-
-\end{figure}
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 0.2222222
-\end{verbatim}
-
-Now the Box-Cox tranformation will be applied to the variable Yards with
-the best lambda value.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-
-Call:
-lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
-    ., data = football_data)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--0.4747 -0.1367  0.0041  0.1391  0.5492 
-
-Coefficients:
-                             Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                 1.533e+00  4.252e-01   3.605 0.000313 ***
-Quarter                     2.045e-04  1.118e-03   0.183 0.854945    
-Down                        5.107e-03  2.244e-03   2.276 0.022858 *  
-Distance                    3.834e-03  4.131e-04   9.281  < 2e-16 ***
-OffenseFormationEMPTY       2.448e-02  1.924e-01   0.127 0.898746    
-OffenseFormationI_FORM     -1.747e-02  1.882e-01  -0.093 0.926043    
-OffenseFormationJUMBO      -1.027e-01  1.885e-01  -0.545 0.585728    
-OffenseFormationPISTOL     -1.521e-02  1.883e-01  -0.081 0.935626    
-OffenseFormationSHOTGUN    -2.954e-02  1.882e-01  -0.157 0.875255    
-OffenseFormationSINGLEBACK -1.847e-02  1.882e-01  -0.098 0.921801    
-OffenseFormationUNKNOWN    -4.269e-02  2.104e-01  -0.203 0.839222    
-OffenseFormationWILDCAT    -1.580e-04  1.898e-01  -0.001 0.999336    
-RB                         -3.485e-03  5.875e-03  -0.593 0.553054    
-TE                         -1.421e-03  4.898e-03  -0.290 0.771792    
-WR                         -6.871e-03  4.992e-03  -1.377 0.168679    
-DefendersInTheBox          -2.749e-02  1.945e-03 -14.135  < 2e-16 ***
-Week                       -2.282e-04  3.435e-04  -0.664 0.506415    
-GameWeathernone             7.253e-03  4.231e-03   1.714 0.086506 .  
-GameWeatherovercast        -3.271e-04  3.110e-03  -0.105 0.916235    
-GameWeatherrain            -4.791e-03  6.303e-03  -0.760 0.447222    
-GameWeathersnow            -8.656e-03  1.815e-02  -0.477 0.633395    
-Temperature                -3.019e-04  1.007e-04  -2.997 0.002725 ** 
-Humidity                   -2.216e-05  6.295e-05  -0.352 0.724800    
-WindSpeed                   1.854e-05  3.094e-04   0.060 0.952216    
-WindDirectionnone          -9.389e-03  8.146e-03  -1.153 0.249086    
-WindDirectionnorth         -2.802e-03  9.503e-03  -0.295 0.768153    
-WindDirectionnorth east    -8.067e-03  8.197e-03  -0.984 0.325065    
-WindDirectionnorth west    -4.240e-03  8.276e-03  -0.512 0.608408    
-WindDirectionsouth         -7.687e-03  9.009e-03  -0.853 0.393538    
-WindDirectionsouth east    -4.907e-03  8.529e-03  -0.575 0.565104    
-WindDirectionsouth west    -5.235e-03  8.041e-03  -0.651 0.515082    
-WindDirectionwest          -5.371e-03  9.581e-03  -0.561 0.575079    
-GameHour                    5.345e-04  2.913e-04   1.835 0.066531 .  
-DL                         -2.015e-03  3.461e-02  -0.058 0.953559    
-LB                         -3.061e-03  3.469e-02  -0.088 0.929677    
-BL                          5.420e-03  3.469e-02   0.156 0.875840    
-YardsFromOwnGoal           -4.017e-04  5.336e-05  -7.529 5.33e-14 ***
-ScoreDelta                 -2.177e-04  1.202e-04  -1.812 0.070023 .  
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.1881 on 21863 degrees of freedom
-Multiple R-squared:  0.04641,   Adjusted R-squared:  0.04479 
-F-statistic: 28.76 on 37 and 21863 DF,  p-value: < 2.2e-16
-\end{verbatim}
-
-Based on the results of the full model, the model shows which predictors
-are statistically significant. The most significant predictors are
-Distance, DefendersInTheBox, and YardsFromOwnGoal. Creating scatter
-plots of the response variable versus each of these predictors will help
-to gain a better understanding of how these variables affect the
-predicted yards.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of yards vs. Distance}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-26-1.pdf}
-
-}
-
-\end{figure}
-
-Looking at this scatter plot of Yards vs Distance, there appears to only
-be a sinusoial relationship between the two variables. Therefore, when a
-reduced model is created, a sine function will be used to model the
-relationship between the two variables.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of yards vs. Defenders In The Box}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Yards vs. Defenders In The Box"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Defenders In The Box"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-27-1.pdf}
-
-}
-
-\end{figure}
-
-Looking at this scatter plot of Yards vs Defenders In The Box, there
-appears to be a quadratic function relationship between the two
-variables. Therefore, when a reduced model is created, the Defenders In
-The Box variable will be squared in order to capture this relationship
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of yards vs. YardsFromOwnGoal}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{Yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Yards vs. Yards From Own Goal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Yards From Own Goal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-28-1.pdf}
-
-}
-
-\end{figure}
-
-The scatterplot of Yards vs Yards From Own Goal shows that there is a
-linear relationship between the two variables. Therefore, when a reduced
-model is created, the Yards From Own Goal variable will not be changed
-since the model is already capturing this linear relationship.
-
-In order to capture these relationships between variables, a new, full
-model will be synthesized. This model will include the Distance variable
-with a sine function and the Defenders In The Box variable squared.
-However, the Box-Cox transformation will need to be run again.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_full }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data))}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-29-1.pdf}
-
-}
-
-\end{figure}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{summary}\NormalTok{(lambda\_full)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-  Length Class  Mode   
-x 100    -none- numeric
-y 100    -none- numeric
-\end{verbatim}
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)]}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 0.2222222
-\end{verbatim}
-
-Now the Box-Cox tranformation will be applied to the variable Yards with
-the best lambda value.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lm\_model\_full }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_full}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Quarter }\SpecialCharTok{+}\NormalTok{ Down }\SpecialCharTok{+} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ OffenseFormation }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ TE }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Week }\SpecialCharTok{+}\NormalTok{ GameWeather }\SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ Humidity }\SpecialCharTok{+}\NormalTok{ WindSpeed }\SpecialCharTok{+}\NormalTok{ WindDirection }\SpecialCharTok{+}\NormalTok{ GameHour }\SpecialCharTok{+}\NormalTok{ DL }\SpecialCharTok{+}\NormalTok{ LB }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ ScoreDelta, }\AttributeTok{data =}\NormalTok{ football\_data)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_full)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-
-Call:
-lm(formula = (Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ 
-    Quarter + Down + sin(Distance) + OffenseFormation + RB + 
-        TE + WR + DefendersInTheBox^2 + Week + GameWeather + 
-        Temperature + Humidity + WindSpeed + WindDirection + 
-        GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, 
-    data = football_data)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--0.43047 -0.13761  0.00579  0.13964  0.54723 
-
-Coefficients:
-                             Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                 1.572e+00  4.257e-01   3.693 0.000222 ***
-Quarter                     4.560e-04  1.119e-03   0.407 0.683760    
-Down                        6.823e-04  2.260e-03   0.302 0.762764    
-sin(Distance)              -1.309e-02  2.557e-03  -5.118 3.11e-07 ***
-OffenseFormationEMPTY       1.810e-02  1.926e-01   0.094 0.925163    
-OffenseFormationI_FORM     -2.044e-02  1.885e-01  -0.108 0.913627    
-OffenseFormationJUMBO      -1.057e-01  1.888e-01  -0.560 0.575549    
-OffenseFormationPISTOL     -1.896e-02  1.886e-01  -0.101 0.919903    
-OffenseFormationSHOTGUN    -3.184e-02  1.884e-01  -0.169 0.865822    
-OffenseFormationSINGLEBACK -2.233e-02  1.884e-01  -0.119 0.905657    
-OffenseFormationUNKNOWN    -4.517e-02  2.107e-01  -0.214 0.830241    
-OffenseFormationWILDCAT    -3.616e-03  1.901e-01  -0.019 0.984823    
-RB                         -3.657e-03  5.883e-03  -0.622 0.534153    
-TE                         -9.796e-04  4.904e-03  -0.200 0.841678    
-WR                         -7.130e-03  4.999e-03  -1.426 0.153781    
-DefendersInTheBox          -2.953e-02  1.930e-03 -15.301  < 2e-16 ***
-Week                       -1.953e-04  3.439e-04  -0.568 0.570043    
-GameWeathernone             7.612e-03  4.237e-03   1.797 0.072415 .  
-GameWeatherovercast        -2.761e-04  3.114e-03  -0.089 0.929343    
-GameWeatherrain            -4.145e-03  6.312e-03  -0.657 0.511335    
-GameWeathersnow            -7.028e-03  1.817e-02  -0.387 0.698943    
-Temperature                -2.819e-04  1.008e-04  -2.795 0.005193 ** 
-Humidity                   -3.439e-05  6.302e-05  -0.546 0.585250    
-WindSpeed                   7.867e-05  3.097e-04   0.254 0.799487    
-WindDirectionnone          -8.918e-03  8.157e-03  -1.093 0.274260    
-WindDirectionnorth         -2.268e-03  9.516e-03  -0.238 0.811644    
-WindDirectionnorth east    -7.485e-03  8.208e-03  -0.912 0.361843    
-WindDirectionnorth west    -3.958e-03  8.287e-03  -0.478 0.632975    
-WindDirectionsouth         -7.636e-03  9.021e-03  -0.846 0.397306    
-WindDirectionsouth east    -4.302e-03  8.541e-03  -0.504 0.614508    
-WindDirectionsouth west    -5.156e-03  8.052e-03  -0.640 0.521962    
-WindDirectionwest          -4.050e-03  9.593e-03  -0.422 0.672902    
-GameHour                    4.157e-04  2.914e-04   1.427 0.153660    
-DL                         -1.108e-03  3.465e-02  -0.032 0.974487    
-LB                         -1.580e-03  3.473e-02  -0.045 0.963712    
-BL                          7.304e-03  3.473e-02   0.210 0.833457    
-YardsFromOwnGoal           -4.871e-04  5.229e-05  -9.315  < 2e-16 ***
-ScoreDelta                 -2.299e-04  1.203e-04  -1.911 0.055994 .  
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.1883 on 21863 degrees of freedom
-Multiple R-squared:  0.0438,    Adjusted R-squared:  0.04218 
-F-statistic: 27.06 on 37 and 21863 DF,  p-value: < 2.2e-16
-\end{verbatim}
-
-Now lets use the step function to find the best model for the data.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(lm\_model\_full, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_step)}
-\end{Highlighting}
-\end{Shaded}
-
-This new reduced model needs to be run similar to that of the previous
-models utilizing the Box-Cox transformation.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{boxcox}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data))}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-33-1.pdf}
-
-}
-
-\end{figure}
-
-The best lambda value for the Box-Cox tranformation is as follows:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)]}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-[1] 0.2222222
-\end{verbatim}
-
-Now the Box-Cox tranformation will be applied to the variable Yards with
-the best lambda value.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{lm\_model\_reduced }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{((Yards}\SpecialCharTok{\^{}}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{x[}\FunctionTok{which.max}\NormalTok{(lambda\_reduced}\SpecialCharTok{$}\NormalTok{y)])) }\SpecialCharTok{\textasciitilde{}} \FunctionTok{sin}\NormalTok{(Distance) }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{+}\NormalTok{ Temperature }\SpecialCharTok{+}\NormalTok{ BL }\SpecialCharTok{+}\NormalTok{ YardsFromOwnGoal, }\AttributeTok{data =}\NormalTok{ football\_data)}
-\FunctionTok{summary}\NormalTok{(lm\_model\_reduced)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-
-Call:
-lm(formula = (Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ 
-    sin(Distance) + WR + DefendersInTheBox^2 + Temperature + 
-        BL + YardsFromOwnGoal, data = football_data)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--0.42892 -0.13844  0.00668  0.14027  0.47618 
-
-Coefficients:
-                    Estimate Std. Error t value Pr(>|t|)    
-(Intercept)        1.518e+00  2.254e-02  67.351  < 2e-16 ***
-sin(Distance)     -1.536e-02  2.198e-03  -6.989 2.85e-12 ***
-WR                -5.522e-03  2.406e-03  -2.295 0.021750 *  
-DefendersInTheBox -3.049e-02  1.865e-03 -16.345  < 2e-16 ***
-Temperature       -2.167e-04  7.435e-05  -2.914 0.003574 ** 
-BL                 9.724e-03  2.939e-03   3.309 0.000939 ***
-YardsFromOwnGoal  -5.382e-04  5.167e-05 -10.417  < 2e-16 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.1886 on 21894 degrees of freedom
-Multiple R-squared:  0.0394,    Adjusted R-squared:  0.03914 
-F-statistic: 149.7 on 6 and 21894 DF,  p-value: < 2.2e-16
-\end{verbatim}
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
-Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
-of the model can be checked.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\FunctionTok{plot}\NormalTok{(lm\_model\_reduced)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-36-1.pdf}
-
-}
-
-\end{figure}
-
-Based on the plots above, the normality assumption is not violated, as
-the Q-Q Residuals plot shows that the residuals are mainly normally
-distributed.
-
-In order to gain a better understanding of how these variables affect
-the predicted yards, scatter plots of the predicted yards versus each of
-the predictors will be created. However, the only scatter plots that
-will be synthesized are those that have the three highest t values:
-Distance, DefendersInTheBox, and YardsFromOwnGoal.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(lm\_model\_reduced, football\_data)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of predicted yards vs. Distance}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{Distance, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. Distance"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Distance"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-38-1.pdf}
-
-}
-
-\end{figure}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of predicted yards vs. DefendersInTheBox}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{DefendersInTheBox, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. DefendersInTheBox"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"DefendersInTheBox"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-39-1.pdf}
-
-}
-
-\end{figure}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Scatter plot of predicted yards vs. YardsFromOwnGoal}
-\FunctionTok{plot}\NormalTok{(football\_data}\SpecialCharTok{$}\NormalTok{predicted\_yards, football\_data}\SpecialCharTok{$}\NormalTok{YardsFromOwnGoal, }\AttributeTok{main =} \StringTok{"Predicted Yards vs. YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{xlab =} \StringTok{"Predicted Yards"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"YardsFromOwnGoal"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{)}
-\FunctionTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)  }\CommentTok{\# Adds a 45{-}degree line}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-40-1.pdf}
-
-}
-
-\end{figure}
-
-\hypertarget{glm-with-gamma-response}{%
-\subsection{GLM with Gamma Response}\label{glm-with-gamma-response}}
-
-The next model that will be synthesized is a GLM with a gamma response.
-The gamma distribution is a two-parameter family of continuous
-probability distributions. The gamma distribution is a generalization of
-the exponential distribution. The gamma distribution is frequently used
-to model right-skewed data. The gamma distribution is a two-parameter
-family of continuous probability distributions. The gamma distribution
-is a generalization of the exponential distribution. The gamma
-distribution is frequently used to model right-skewed data. The gamma
-distribution is a two-parameter family of continuous probability
-distributions. The gamma distribution is a generalization of the
-exponential distribution. The gamma distribution is frequently used to
-model right-skewed data. The gamma distribution is a two-parameter
-family of continuous probability distributions. The gamma distribution
-is a generalization of the exponential distribution. The gamma
-distribution is frequently used to model right-skewed data. The gamma
-distribution is a two-parameter family of continuous probability
-distributions. The gamma distribution is a generalization of the
-exponential distribution. The gamma distribution is frequently used to
-model right-skewed data. The gamma distribution is a two-parameter
-family of continuous probability distributions. The gamma distribution
-is a generalization of the exponential distribution. The gamma
-distribution is frequently used to model right-skewed data.
-
-Lets start by removing any rows whose yards column is negative. This is
-because the gamma distribution cannot have negative values.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Remove any rows whose yards column is negative}
-\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textgreater{}=} \FloatTok{0.1}\NormalTok{, ]}
-\NormalTok{football\_data }\OtherTok{\textless{}{-}}\NormalTok{ football\_data[football\_data}\SpecialCharTok{$}\NormalTok{Yards }\SpecialCharTok{\textless{}=} \DecValTok{10}\NormalTok{, ]}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# Fit the model}
-\NormalTok{glm\_model\_gamma }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
-\end{Highlighting}
-\end{Shaded}
-
-Now lets use the step function to find the best model for the data.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{glm\_model\_step }\OtherTok{\textless{}{-}} \FunctionTok{step}\NormalTok{(glm\_model\_gamma, }\AttributeTok{direction =} \StringTok{"backward"}\NormalTok{)}
-\FunctionTok{summary}\NormalTok{(glm\_model\_step)}
-\end{Highlighting}
-\end{Shaded}
-
-Running this reduced model yields the following results:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{reduced\_model }\OtherTok{\textless{}{-}} \FunctionTok{glm}\NormalTok{(Yards }\SpecialCharTok{\textasciitilde{}}\NormalTok{ YardsFromOwnGoal }\SpecialCharTok{+}\NormalTok{ Distance }\SpecialCharTok{+}\NormalTok{ RB }\SpecialCharTok{+}\NormalTok{ WR }\SpecialCharTok{+}\NormalTok{ DefendersInTheBox }\SpecialCharTok{+}\NormalTok{ BL, }\AttributeTok{data=}\NormalTok{football\_data, }\AttributeTok{family =} \FunctionTok{Gamma}\NormalTok{(}\AttributeTok{link =} \StringTok{"log"}\NormalTok{))}
-\FunctionTok{summary}\NormalTok{(reduced\_model)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-
-Call:
-glm(formula = Yards ~ YardsFromOwnGoal + Distance + RB + WR + 
-    DefendersInTheBox + BL, family = Gamma(link = "log"), data = football_data)
-
-Coefficients:
-                    Estimate Std. Error t value Pr(>|t|)    
-(Intercept)        1.8459028  0.0763143  24.188  < 2e-16 ***
-YardsFromOwnGoal  -0.0015976  0.0001702  -9.389  < 2e-16 ***
-Distance           0.0122438  0.0011600  10.555  < 2e-16 ***
-RB                 0.0008051  0.0111905   0.072 0.942643    
-WR                -0.0146274  0.0082184  -1.780 0.075118 .  
-DefendersInTheBox -0.0938411  0.0060793 -15.436  < 2e-16 ***
-BL                 0.0334060  0.0094814   3.523 0.000427 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-(Dispersion parameter for Gamma family taken to be 0.3704999)
-
-    Null deviance: 9177.3  on 21900  degrees of freedom
-Residual deviance: 8838.8  on 21894  degrees of freedom
-AIC: 93929
-
-Number of Fisher Scoring iterations: 5
-\end{verbatim}
-
-By creating a Residuals vs Fitted plot, a Q-Q Residuals plot, a
-Scale-Location plot, and a Residuals vs Leverage plot, the assumptions
-of the model can be checked.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\NormalTok{old.par }\OtherTok{=} \FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{))}
-\FunctionTok{plot}\NormalTok{(glm\_model\_gamma)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-
-Warning in sqrt(crit * p * (1 - hh)/hh): NaNs produced
-\end{verbatim}
-
-\begin{figure}[H]
-
-{\centering \includegraphics{project_report_files/figure-pdf/unnamed-chunk-45-1.pdf}
-
-}
-
-\end{figure}
-
-\hypertarget{references}{%
-\section*{References}\label{references}}
-\addcontentsline{toc}{section}{References}
-
-\hypertarget{bibliography-styles}{%
-\section{Bibliography styles}\label{bibliography-styles}}
-
-Here are two sample references: \citet{Feynman1963118}
-\citet{Dirac1953888}.
-
-By default, natbib will be used with the \texttt{authoryear} style, set
-in \texttt{classoption} variable in YAML. You can sets extra options
-with \texttt{natbiboptions} variable in YAML header. Example
-
-\begin{verbatim}
-natbiboptions: longnamesfirst,angle,semicolon
-\end{verbatim}
-
-There are various more specific bibliography styles available at
-\url{https://support.stmdocs.in/wiki/index.php?title=Model-wise_bibliographic_style_files}.
-To use one of these, add it in the header using, for example,
-\texttt{biblio-style:\ model1-num-names}.
-
-\hypertarget{using-csl}{%
-\subsection{Using CSL}\label{using-csl}}
-
-If \texttt{cite-method} is set to \texttt{citeproc} in
-\texttt{elsevier\_article()}, then pandoc is used for citations instead
-of \texttt{natbib}. In this case, the \texttt{csl} option is used to
-format the references. By default, this template will provide an
-appropriate style, but alternative \texttt{csl} files are available from
-\url{https://www.zotero.org/styles?q=elsevier}. These can be downloaded
-and stored locally, or the url can be used as in the example header.
 
 
   \bibliography{bibliography.bib}
