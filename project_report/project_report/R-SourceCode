@@ -1,0 +1,294 @@
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+str(football_data)
+
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+
+# Remove any rows whose yards column is negative
+football_data <- football_data[football_data$Yards >= 0.1, ]
+football_data <- football_data[football_data$Yards <= 10, ]
+
+# Fit the null glm model
+glm_model_gamma <- glm(Yards ~ 1, data = football_data, family = Gamma(link = "log"))
+
+# Fit the full model
+glm_model_gamma <- glm(Yards ~ ., data = football_data, family = Gamma(link = "log"))
+
+# Use step function to find the best model
+glm_model_step <- step(glm_model_gamma, direction = "backward")
+summary(glm_model_step)
+
+# Fit a reduced model
+reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data=football_data, family = Gamma(link = "log"))
+summary(reduced_model)
+
+# Plot diagnostics for the model
+par(mfrow = c(2, 2))
+old.par = par(mar = c(3, 4, 1, 2))
+plot(glm_model_gamma)
+
+# Identify and remove outliers
+cooksd <- cooks.distance(glm_model_gamma)
+plot(cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance")
+abline(h = 4*mean(cooksd, na.rm=T), col="red")
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>4*mean(cooksd, na.rm=T),names(cooksd),""), col="red")
+
+# Remove outliers from the dataset
+extpts <- which(abs(residuals(glm_model_gamma)) > 3*sd(residuals(glm_model_gamma)))
+football_data <- football_data[-extpts,]
+
+# Split data into training and testing sets
+set.seed(123)
+train_index <- sample(1:nrow(football_data), 0.8*nrow(football_data))
+train_data <- football_data[train_index,]
+test_data <- football_data[-train_index,]
+
+# Fit the null model again without outliers
+glm_model_gamma <- glm(Yards ~ 1, data = train_data, family = Gamma(link = "log"))
+
+# Fit the reduced model without outliers
+reduced_model <- glm(Yards ~ YardsFromOwnGoal + Distance + RB + WR + DefendersInTheBox + BL, data = train_data, family = Gamma(link = "log"))
+summary(reduced_model)
+
+# Test for model adequacy
+with(reduced_model, cbind(deviance = null.deviance - deviance, 
+                          df = df.null - df.residual,
+                          p = pchisq(null.deviance - deviance, 
+                                     df.null - df.residual, 
+                                     lower.tail = FALSE)))
+
+# Compare AIC values for the models
+AIC(glm_model_gamma, reduced_model)
+
+# Check for overdispersion
+disp.est <- reduced_model$deviance/reduced_model$df.residual
+disp.est
+
+# Predict yards for the test set
+predicted_yards <- predict(reduced_model, newdata = test_data, type = "response")
+
+# Calculate mean squared error
+mse <- mean((test_data$Yards - predicted_yards)^2)
+mse
+
+# Calculate mean absolute error
+mae <- mean(abs(test_data$Yards - predicted_yards))
+mae
+
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+str(football_data)
+
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+
+# Histogram of Yards
+hist(football_data$Yards, main = "Histogram of Yards", xlab = "Yards", ylab = "Frequency", col = "blue")
+
+# Box-Cox transformation for null model
+library(MASS)
+lambda_null <- boxcox(lm(Yards ~ 1, data = football_data))
+lambda_null$x[which.max(lambda_null$y)]
+
+# Apply Box-Cox transformation for null model
+lm_model_null <- lm((Yards^(lambda_null$x[which.max(lambda_null$y)])) ~ 1, data = football_data)
+summary(lm_model_null)
+
+# Box-Cox transformation for full model
+lambda_full <- boxcox(lm(Yards ~ ., data = football_data))
+lambda_full$x[which.max(lambda_full$y)]
+
+# Apply Box-Cox transformation for full model
+lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ ., data = football_data)
+summary(lm_model_full)
+
+# Scatter plot of yards vs. Distance
+plot(football_data$Yards, football_data$Distance, main = "Yards vs. Distance", xlab = "Yards", ylab = "Distance", pch = 19)
+
+# Scatter plot of yards vs. Defenders In The Box
+plot(football_data$Yards, football_data$DefendersInTheBox, main = "Yards vs. Defenders In The Box", xlab = "Yards", ylab = "Defenders In The Box", pch = 19)
+
+# Scatter plot of yards vs. YardsFromOwnGoal
+plot(football_data$Yards, football_data$YardsFromOwnGoal, main = "Yards vs. Yards From Own Goal", xlab = "Yards", ylab = "Yards From Own Goal", pch = 19)
+
+# Box-Cox transformation for new full model
+lambda_full <- boxcox(lm(Yards ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data))
+lambda_full$x[which.max(lambda_full$y)]
+
+# Apply Box-Cox transformation for new full model
+lm_model_full <- lm((Yards^(lambda_full$x[which.max(lambda_full$y)])) ~ Quarter + Down + sin(Distance) + OffenseFormation + RB + TE + WR + DefendersInTheBox^2 + Week + GameWeather + Temperature + Humidity + WindSpeed + WindDirection + GameHour + DL + LB + BL + YardsFromOwnGoal + ScoreDelta, data = football_data)
+summary(lm_model_full)
+
+# Use step function to find the best model for the data
+lm_model_step <- step(lm_model_full, direction = "backward")
+summary(lm_model_step)
+
+# Box-Cox transformation for reduced model
+lambda_reduced <- boxcox(lm(Yards ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data))
+lambda_reduced$x[which.max(lambda_reduced$y)]
+
+# Apply Box-Cox transformation for reduced model
+lm_model_reduced <- lm((Yards^(lambda_reduced$x[which.max(lambda_reduced$y)])) ~ sin(Distance) + WR + DefendersInTheBox^2 + Temperature + BL + YardsFromOwnGoal, data = football_data)
+summary(lm_model_reduced)
+
+# Plot diagnostics for the reduced model
+par(mfrow = c(2, 2))
+old.par = par(mar = c(3, 4, 1, 2))
+plot(lm_model_reduced)
+
+# Scatter plots of predicted yards versus significant predictors
+football_data$predicted_yards <- predict(lm_model_reduced, football_data)
+
+# Scatter plot of predicted yards vs. Distance
+plot(football_data$predicted_yards, football_data$Distance, main = "Predicted Yards vs. Distance", xlab = "Predicted Yards", ylab = "Distance", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+
+# Scatter plot of predicted yards vs. DefendersInTheBox
+plot(football_data$predicted_yards, football_data$DefendersInTheBox, main = "Predicted Yards vs. DefendersInTheBox", xlab = "Predicted Yards", ylab = "DefendersInTheBox", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+
+# Scatter plot of predicted yards vs. YardsFromOwnGoal
+plot(football_data$predicted_yards, football_data$YardsFromOwnGoal, main = "Predicted Yards vs. YardsFromOwnGoal", xlab = "Predicted Yards", ylab = "YardsFromOwnGoal", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+
+# Import the dataset
+football_data <- read.csv("/Users/samlutz10/Desktop/STAT5405/Final Project/train_ready.csv")
+str(football_data)
+
+# Load required libraries
+library(rpart)
+library(randomForest)
+library(xgboost)
+library(caret)
+library(rpart.plot)
+library(fastDummies)
+
+# Convert specified factor columns to dummy variables
+football_data <- dummy_cols(football_data, 
+                            select_columns = c("WindDirection", "GameWeather", "OffenseFormation"), 
+                            remove_selected_columns = TRUE)
+
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
+
+names(train.set) <- make.names(names(train.set), unique = TRUE)
+names(test.set) <- make.names(names(test.set), unique = TRUE)
+
+# Check that the average of yards is about the same in both the training and testing sets
+(ave_train <- mean(train.set$Yards))
+(ave_test <- mean(test.set$Yards))
+(ave_all <- mean(football_data$Yards))
+
+# Decision Tree Model
+dt_model <- rpart(Yards ~ ., data = train.set, method = "anova", 
+                  control = rpart.control(maxdepth = 5, cp = 0.01, minsplit = 20))
+dt_predictions <- predict(dt_model, test.set)
+dt_rmse <- sqrt(mean((test.set$Yards - dt_predictions)^2))
+dt_rmse
+
+# Plot the decision tree
+rpart.plot(dt_model, type = 4, extra = 1, under = TRUE, faclen = 0)
+
+# Random Forest Model
+rf_model <- randomForest(Yards ~ ., data = train.set, ntree = 300., mtry = 3)
+rf_predictions <- predict(rf_model, test.set)
+rf_rmse <- sqrt(mean((test.set$Yards - rf_predictions)^2))
+rf_rmse
+feature_importance <- importance(rf_model)
+top_features <- sort(feature_importance[, 'IncNodePurity'], decreasing = TRUE)[1:3]
+top_features
+
+# XGBoost Model
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",
+    eta = 0.1,
+    max_depth = 6,
+    subsample = 0.5,
+    colsample_bytree = 0.5
+)
+
+nrounds <- 100
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+xgb_predictions <- predict(xgb_model, dtest)
+true_values <- test.set$Yards
+rmse <- sqrt(mean((true_values - xgb_predictions)^2))
+print(paste("RMSE:", rmse))
+
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+
+# Remove any rows whose yards column is greater than 30
+football_data <- football_data[football_data$Yards <= 10 & football_data$Yards > 0, ]
+
+# Split the data into a training set and a testing set
+set.seed(123457)
+train.prop <- 0.80
+strats <- football_data$Yards
+rr <- split(1:length(strats), strats)
+idx <- sort(as.numeric(unlist(sapply(rr, 
+        function(x) sample(x, length(x)*train.prop)))))
+train.set <- football_data[idx, ]
+test.set <- football_data[-idx, ]
+
+# Prepare the data for XGBoost
+train_matrix <- as.matrix(train.set[, -which(names(train.set) == "Yards")])
+test_matrix <- as.matrix(test.set[, -which(names(test.set) == "Yards")])
+dtrain <- xgb.DMatrix(data = train_matrix, label = train.set$Yards)
+dtest <- xgb.DMatrix(data = test_matrix, label = test.set$Yards)
+
+# Set XGBoost parameters
+params <- list(
+    booster = "gbtree",
+    objective = "reg:squarederror",
+    eta = 0.1,
+    max_depth = 6,
+    subsample = 0.5,
+    colsample_bytree = 0.5
+)
+
+# Number of boosting rounds
+nrounds <- 100
+
+# Train the model
+xgb_model <- xgb.train(params = params, data = dtrain, nrounds = nrounds)
+
+# Predicting
+xgb_predictions <- predict(xgb_model, dtest)
+
+# Evaluate the model
+# For example, using Root Mean Squared Error (RMSE)
+true_values <- test.set$Yards
+rmse <- sqrt(mean((true_values - xgb_predictions)^2))
+print(paste("RMSE:", rmse))
+
+# Scatter plot of actual vs. predicted values
+plot(true_values, xgb_predictions, main = "Actual vs Predicted Yards", xlab = "Actual Yards", ylab = "Predicted Yards", pch = 19)
+abline(0, 1, col = "red")  # Adds a 45-degree line
+
+# Variable importance plot
+importance_matrix <- xgb.importance(feature_names = colnames(train_matrix), model = xgb_model)
+xgb.plot.importance(importance_matrix)
+
+# Mean Absolute Error
+mae <- mean(abs(true_values - xgb_predictions))
+print(paste("MAE:", mae))
+
+# Residuals plot
+residuals <- true_values - xgb_predictions
+plot(residuals, type = "l", main = "Residuals Plot", xlab = "Index", ylab = "Residual")
+abline(h = 0, col = "red")
